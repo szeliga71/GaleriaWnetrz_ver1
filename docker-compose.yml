@@ -6,11 +6,18 @@ services:
     environment:
       POSTGRES_DB: GaleriaWnetrz
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgresql
+      POSTGRES_PASSWORD: postgresql  # Hasło do bazy
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # Dodaj healthcheck - sprawdza gotowość bazy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d GaleriaWnetrz"]  # Czeka na gotowość bazy
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s  # Czas na inicjalizację bazy
 
   app:
     build: .
@@ -21,10 +28,19 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/GaleriaWnetrz
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgresql
-      APP_SUPER_USERNAME: postgres
-      APP_SUPER_PASSWORD: postgresql
+      APP_SUPER_USERNAME: superadmin  # Nadpisz na spójne wartości
+      APP_SUPER_PASSWORD: superadmin  # Użyj tych samych w kodzie/logach
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update  # Opcjonalnie: automatycznie tworzy schemat
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"  # Opcjonalnie: poprawia problemy z DDL w kontenerach
+
+      SPRING_PROFILES_ACTIVE: docker
     depends_on:
-      - db
+      db:
+        condition: service_healthy  # Czeka na healthcheck bazy (gotowość)
+    # Opcjonalnie: restart na błędy
+    restart: unless-stopped
+
+
 
 volumes:
   postgres_data:
