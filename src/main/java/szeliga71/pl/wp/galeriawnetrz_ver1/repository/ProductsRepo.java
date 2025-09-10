@@ -1,21 +1,20 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Products;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ProductsRepo extends JpaRepository<Products, Long> {
 
-   /* @Query("SELECT p FROM Products p WHERE p.productId = :id")
-    Optional<Products> findByProductId(@Param("id") Long id);*/
+    List<Products> findByCategoryId(Long categoryId);
+    List<Products> findBySubCategoryId(Long subCategoryId);
+    List<Products> findByBrandId(Long brandId);
 
-    Optional<Products> findByCategoryId(Long categoryId);
+    //List<Products> findBySubCategory_Category_CategoryId(Long categoryId);
+    //List<Products> findBySubCategory_subCategoriesId(Long subCategoriesId);
 
-    Optional<Products> findByBrandId(Long brandId);
+
 }

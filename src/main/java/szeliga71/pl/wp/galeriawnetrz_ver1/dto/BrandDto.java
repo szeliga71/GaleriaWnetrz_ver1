@@ -1,21 +1,21 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 
+import java.util.List;
 
-@Entity
-public class Brands {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class BrandDto {
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long brandId;
     private String brandName;
     private String brandImageUrl;
-    @Column(columnDefinition = "TEXT")
-    private String brandDescriptionPL;
-    @Column(columnDefinition = "TEXT")
-    private String brandDescriptionENG;
+    private List<String> brandDescriptionPL;
+    private List<String> brandDescriptionENG;
     private String brandUrl;
-    @Column(unique = true)
     private String slugName;
 
     public Long getBrandId() {
@@ -42,19 +42,19 @@ public class Brands {
         this.brandImageUrl = brandImageUrl;
     }
 
-    public String getBrandDescriptionPL() {
+    public List<String> getBrandDescriptionPL() {
         return brandDescriptionPL;
     }
 
-    public void setBrandDescriptionPL(String brandDescriptionPL) {
+    public void setBrandDescriptionPL(List<String> brandDescriptionPL) {
         this.brandDescriptionPL = brandDescriptionPL;
     }
 
-    public String getBrandDescriptionENG() {
+    public List<String> getBrandDescriptionENG() {
         return brandDescriptionENG;
     }
 
-    public void setBrandDescriptionENG(String brandDescriptionENG) {
+    public void setBrandDescriptionENG(List<String> brandDescriptionENG) {
         this.brandDescriptionENG = brandDescriptionENG;
     }
 

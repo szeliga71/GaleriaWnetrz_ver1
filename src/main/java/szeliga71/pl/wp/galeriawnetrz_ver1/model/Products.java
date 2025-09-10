@@ -19,14 +19,17 @@ public class Products {
 
     @Column(columnDefinition = "TEXT",name = "descriptioneng")
     private String descriptionENG;
-    @Column(name = "category_id")
+    @JoinColumn(name = "category_id")
     private Long categoryId;
-    @Column(name = "sub_category_id")
+    @JoinColumn(name = "sub_category_id")
     private Long subCategoryId;
     @Column(name = "pdf_url")
     private String pdfUrl;
     @Column(name = "brand_id")
     private Long brandId;
+    //@ManyToOne
+    //@JoinColumn(name = "sub_category_id", nullable = false)
+    //private SubCategories subCategory;
 
     @ElementCollection
     @CollectionTable(

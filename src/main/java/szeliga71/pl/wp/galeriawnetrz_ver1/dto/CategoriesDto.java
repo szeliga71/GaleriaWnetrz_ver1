@@ -1,19 +1,16 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+public class CategoriesDto {
 
-@Entity
-@Table(name = "categories")
-public class Categories {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long categoryId;
     private String categoryName;
     private String categoryImageUrl;
-    @Column(unique = true)
     private String slugCategoryName;
-
 
     public Long getCategoryId() {
         return categoryId;
@@ -30,7 +27,6 @@ public class Categories {
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
     }
-
 
     public String getCategoryImageUrl() {
         return categoryImageUrl;

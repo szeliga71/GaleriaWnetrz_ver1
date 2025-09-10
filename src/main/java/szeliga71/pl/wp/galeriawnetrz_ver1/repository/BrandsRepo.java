@@ -6,4 +6,6 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 
 @Repository
 public interface BrandsRepo extends JpaRepository<Brands, Long> {
+
+
 }
