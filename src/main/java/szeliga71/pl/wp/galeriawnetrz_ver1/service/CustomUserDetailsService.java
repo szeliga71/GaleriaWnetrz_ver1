@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.repository.UserRepository;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepo;

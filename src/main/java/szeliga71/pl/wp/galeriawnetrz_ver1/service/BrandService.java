@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandDto;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BrandService {
     @Autowired
     BrandsRepo brandsRepo;

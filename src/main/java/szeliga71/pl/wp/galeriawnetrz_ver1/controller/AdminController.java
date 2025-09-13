@@ -3,10 +3,7 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoriesDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
@@ -31,27 +28,43 @@ public class AdminController {
         this.subCategoriesService = subCategoriesService;
         this.postsService = postsService;
     }
-    @PostMapping("/product/")
+    @PostMapping("/product")
     public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto) {
         ProductDto savedProduct = productService.saveProduct(productDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }
 
-    @PostMapping("/brand/")
+    @PostMapping("/brand")
     public ResponseEntity<BrandDto> createProduct(@RequestBody BrandDto brandDto) {
         BrandDto savedBrand = brandService.saveBrand(brandDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedBrand);
     }
-    @PostMapping("/category/")
+    @PostMapping("/category")
     public ResponseEntity<CategoriesDto> createCategory(@RequestBody CategoriesDto categoryDto) {
         CategoriesDto savedCategory = categorieService.saveCategory(categoryDto);
         return ResponseEntity.ok(savedCategory);
     }
 
-    @PostMapping("/subcategory/")
+
+    @PostMapping("/subcategory")
     public ResponseEntity<SubCategoriesDto> createSubCategory(@RequestBody SubCategoriesDto dto) {
         SubCategoriesDto saved = subCategoriesService.saveSubCategory(dto);
         return ResponseEntity.ok(saved);
     }
+
+
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/products")
+    public ResponseEntity<Void> deleteAllProducts() {
+        productService.deleteAllProducts();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+
 
 }

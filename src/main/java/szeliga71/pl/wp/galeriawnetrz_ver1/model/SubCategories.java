@@ -13,12 +13,16 @@ public class SubCategories {
     private String subCategoryImageUrl;
     private String slugSubCategoryName;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Categories category;
+
     public Long getSubCategoryId() {
         return subCategoryId;
     }
 
-    public void setSubCategoriesId(Long subCategoriesId) {
-        this.subCategoryId = subCategoriesId;
+    public void setSubCategoryId(Long subCategoryId) {
+        this.subCategoryId = subCategoryId;
     }
 
     public String getSubCategoryName() {
@@ -37,10 +41,6 @@ public class SubCategories {
         this.subCategoryImageUrl = subCategoryImageUrl;
     }
 
-    public void setSubCategoryId(Long subCategoryId) {
-        this.subCategoryId = subCategoryId;
-    }
-
     public String getSlugSubCategoryName() {
         return slugSubCategoryName;
     }
@@ -48,4 +48,16 @@ public class SubCategories {
     public void setSlugSubCategoryName(String slugSubCategoryName) {
         this.slugSubCategoryName = slugSubCategoryName;
     }
+
+    public Categories getCategory() {
+        return category;
+    }
+
+    public void setCategory(Categories category) {
+        this.category = category;
+    }
+
+
 }
+
+

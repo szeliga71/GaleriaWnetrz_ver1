@@ -27,9 +27,6 @@ public class Products {
     private String pdfUrl;
     @Column(name = "brand_id")
     private Long brandId;
-    //@ManyToOne
-    //@JoinColumn(name = "sub_category_id", nullable = false)
-    //private SubCategories subCategory;
 
     @ElementCollection
     @CollectionTable(

@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.PostsDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Posts;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PostsService {
 
     private final PostsRepo postsRepo;

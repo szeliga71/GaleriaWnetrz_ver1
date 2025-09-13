@@ -11,6 +11,7 @@ public class SubCategoriesDto {
     private String subCategoryName;
     private String subCategoryImageUrl;
     private String slugSubCategoryName;
+    private Long categoryId;
 
     public Long getSubCategoryId() {
         return subCategoryId;
@@ -42,5 +43,12 @@ public class SubCategoriesDto {
 
     public void setSlugSubCategoryName(String slugSubCategoryName) {
         this.slugSubCategoryName = slugSubCategoryName;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 }

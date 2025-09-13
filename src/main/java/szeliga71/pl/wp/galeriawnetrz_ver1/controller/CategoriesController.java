@@ -24,11 +24,26 @@ public class CategoriesController {
         this.categorieService = categorieService;
     }
 
-    @GetMapping
+    /*@GetMapping
     public List<Categories> getAllCategories() {
         return categoriesRepo.findAll();
-    }
+    }*/
 
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoriesDto>> getAllCategories() {
+        List<CategoriesDto> categories = categorieService.getAllCategories()
+                .stream()
+                .map(c -> {
+                    CategoriesDto dto = new CategoriesDto();
+                    dto.setCategoryId(c.getCategoryId());
+                    dto.setCategoryName(c.getCategoryName());
+                    dto.setCategoryImageUrl(c.getCategoryImageUrl());
+                    dto.setSlugCategoryName(c.getSlugCategoryName());
+                    return dto;
+                })
+                .toList();
+        return ResponseEntity.ok(categories);
+    }
 
     @GetMapping("/{id}")
     public Optional<Categories> getCategoryById(@PathVariable Long id) {

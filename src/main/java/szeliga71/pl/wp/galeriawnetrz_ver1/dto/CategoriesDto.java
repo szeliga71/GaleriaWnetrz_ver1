@@ -3,6 +3,8 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
+
 public class CategoriesDto {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
@@ -11,6 +13,9 @@ public class CategoriesDto {
     private String categoryName;
     private String categoryImageUrl;
     private String slugCategoryName;
+    private List<SubCategoriesDto> subCategories;
+
+
 
     public Long getCategoryId() {
         return categoryId;
@@ -42,5 +47,13 @@ public class CategoriesDto {
 
     public void setSlugCategoryName(String slugCategoryName) {
         this.slugCategoryName = slugCategoryName;
+    }
+
+    public List<SubCategoriesDto> getSubCategories() {
+        return subCategories;
+    }
+
+    public void setSubCategories(List<SubCategoriesDto> subCategories) {
+        this.subCategories = subCategories;
     }
 }

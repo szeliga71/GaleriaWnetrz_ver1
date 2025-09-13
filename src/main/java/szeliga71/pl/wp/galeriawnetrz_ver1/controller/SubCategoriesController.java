@@ -27,15 +27,32 @@ public class SubCategoriesController {
         this.subCategoriesService = subCategoriesService;
     }
 
-    @GetMapping
+    /*@GetMapping
     public List<SubCategories> getAllSubCategories() {
         return subCategoriesRepo.findAll();
-    }
+    }*/
 
 
     @GetMapping("/{id}")
     public Optional<SubCategories> getSubCategoryById(@PathVariable Long id) {
         return subCategoriesRepo.findById(id);
+    }
+
+    @GetMapping("/subcategories")
+    public ResponseEntity<List<SubCategoriesDto>> getAllSubCategories() {
+        List<SubCategoriesDto> list = subCategoriesService.getAllSubCategories()
+                .stream()
+                .map(s -> {
+                    SubCategoriesDto dto = new SubCategoriesDto();
+                    dto.setSubCategoryId(s.getSubCategoryId());
+                    dto.setSubCategoryName(s.getSubCategoryName());
+                    dto.setSubCategoryImageUrl(s.getSubCategoryImageUrl());
+                    dto.setSlugSubCategoryName(s.getSlugSubCategoryName());
+                    dto.setCategoryId(s.getCategory().getCategoryId());
+                    return dto;
+                })
+                .toList();
+        return ResponseEntity.ok(list);
     }
 
     /*@PostMapping
