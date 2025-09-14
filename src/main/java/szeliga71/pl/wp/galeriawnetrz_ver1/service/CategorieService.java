@@ -8,6 +8,17 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 
 import java.util.List;
 
+
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoriesDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoriesDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
+
+import java.util.List;
+
 @Service
 @Transactional
 public class CategorieService {
@@ -19,9 +30,16 @@ public class CategorieService {
     }
 
     // Pobranie wszystkich kategorii
-    public List<Categories> getAllCategories() {
+    /*public List<Categories> getAllCategories() {
         return categoriesRepo.findAll();
+    }*/
+    public List<CategoriesDto> getAllCategories() {
+        return categoriesRepo.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .toList();
     }
+
 
     // Pobranie kategorii po ID
     public Categories getCategoryById(Long id) {
@@ -37,7 +55,6 @@ public class CategorieService {
         category.setSlugCategoryName(generateSlug(dto.getCategoryName()));
 
         Categories saved = categoriesRepo.save(category);
-
         return mapToDto(saved);
     }
 
@@ -69,6 +86,21 @@ public class CategorieService {
         dto.setCategoryName(category.getCategoryName());
         dto.setCategoryImageUrl(category.getCategoryImageUrl());
         dto.setSlugCategoryName(category.getSlugCategoryName());
+
+        // Mapowanie subkategorii
+        if (category.getSubCategories() != null && !category.getSubCategories().isEmpty()) {
+            dto.setSubCategories(
+                    category.getSubCategories().stream()
+                            .map(sc -> {
+                                SubCategoriesDto scDto = new SubCategoriesDto();
+                                scDto.setSubCategoryId(sc.getSubCategoryId());
+                                scDto.setSubCategoryName(sc.getSubCategoryName());
+                                return scDto;
+                            })
+                            .toList()
+            );
+        }
+
         return dto;
     }
 
@@ -80,4 +112,3 @@ public class CategorieService {
                 .replaceAll("^-|-$", "");
     }
 }
-

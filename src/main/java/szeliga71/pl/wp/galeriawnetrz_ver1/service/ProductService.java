@@ -1,12 +1,17 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Products;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductsRepo;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoriesRepo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -18,7 +23,16 @@ import java.util.*;
 public class ProductService {
 
     @Autowired
-    ProductsRepo productsRepo;
+    private ProductsRepo productsRepo;
+    @Autowired
+    private CategoriesRepo categoriesRepo;
+    @Autowired
+    private BrandsRepo brandsRepo;
+    @Autowired
+    private SubCategoriesRepo subCategoriesRepo;
+
+    @PersistenceContext
+    private EntityManager em;
 
     public ProductService(ProductsRepo productsRepo) {
         this.productsRepo = productsRepo;
@@ -61,6 +75,7 @@ public class ProductService {
     }
     public void deleteAllProducts() {
         productsRepo.deleteAll();
+        em.createNativeQuery("ALTER SEQUENCE products_product_id_seq RESTART WITH 1").executeUpdate();
     }
 
 
@@ -88,8 +103,8 @@ public class ProductService {
         dto.setPdfUrl(product.getPdfUrl());
         dto.setBrandId(product.getBrandId());
         dto.setImages(product.getImages());
-        dto.setDescriptionENG(product.getDescriptionENG() != null ? List.of(product.getDescriptionENG()) : null);
-        dto.setDescriptionPL(product.getDescriptionPL() != null ? List.of(product.getDescriptionPL()) : null);
+        dto.setDescriptionENG(splitText(product.getDescriptionENG(), 100));
+        dto.setDescriptionPL(splitText(product.getDescriptionPL(), 100));
         dto.setCategoryId(product.getCategoryId());
         dto.setSubCategoryId(product.getSubCategoryId());
         return dto;
@@ -100,110 +115,37 @@ public class ProductService {
         Products product = new Products();
         product.setName(dto.getName());
         product.setPdfUrl(dto.getPdfUrl());
-        product.setBrandId(dto.getBrandId());
         product.setImages(dto.getImages());
         product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
         product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
-        product.setCategoryId(dto.getCategoryId());
-        product.setSubCategoryId(dto.getSubCategoryId());
+
+        // categoryId – walidacja
+        if (dto.getCategoryId() != null && categoriesRepo.existsById(dto.getCategoryId())) {
+            product.setCategoryId(dto.getCategoryId());
+        } else {
+            product.setCategoryId(null);
+            System.err.println("⚠️ Nieprawidłowe categoryId: " + dto.getCategoryId() + " → ustawiono null");
+        }
+
+        // subCategoryId – walidacja
+        if (dto.getSubCategoryId() != null && subCategoriesRepo.existsById(dto.getSubCategoryId())) {
+            product.setSubCategoryId(dto.getSubCategoryId());
+        } else {
+            product.setSubCategoryId(null);
+            System.err.println("⚠️ Nieprawidłowe subCategoryId: " + dto.getSubCategoryId() + " → ustawiono null");
+        }
+
+        // brandId – walidacja
+        if (dto.getBrandId() != null && brandsRepo.existsById(dto.getBrandId())) {
+            product.setBrandId(dto.getBrandId());
+        } else {
+            product.setBrandId(null);
+            System.err.println("⚠️ Nieprawidłowe brandId: " + dto.getBrandId() + " → ustawiono null");
+        }
+
         return product;
     }
-  /*  @Transactional
-    public int importProductsFromCsv(MultipartFile file) {
-        List<Products> batch = new ArrayList<>();
-        int importedCount = 0;
-        int lineNumber = 0;
 
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-
-            String line;
-            boolean firstLine = true;
-
-            while ((line = br.readLine()) != null) {
-                lineNumber++;
-
-                if (firstLine) { // pomiń nagłówek
-                    firstLine = false;
-                    continue;
-                }
-
-                try {
-                    ProductDto dto = parseLine(line);
-                    Products entity = mapToEntity(dto);
-                    batch.add(entity);
-
-                    // batch insert co 500 rekordów
-                    if (batch.size() == 500) {
-                        productsRepo.saveAll(batch);
-                        importedCount += batch.size();
-                        batch.clear();
-                    }
-                } catch (Exception e) {
-                    System.err.println("Błąd w linii " + lineNumber + ": " + e.getMessage());
-                }
-            }
-
-            // zapis ostatniego batcha
-            if (!batch.isEmpty()) {
-                productsRepo.saveAll(batch);
-                importedCount += batch.size();
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("CSV import failed: " + e.getMessage(), e);
-        }
-
-        return importedCount;
-    }*/
-
-    /*private ProductDto parseLine(String line) {
-        String[] fields = line.split(";", -1);
-
-        ProductDto dto = new ProductDto();
-        dto.setName(fields[0]);
-
-        dto.setDescriptionPL(fields.length > 1 && !fields[1].isEmpty() ? List.of(fields[1]) : null);
-        dto.setDescriptionENG(fields.length > 2 && !fields[2].isEmpty() ? List.of(fields[2]) : null);
-
-        // categoryId
-        if (fields.length > 3 && !fields[3].isEmpty()) {
-            try {
-                dto.setCategoryId(Long.parseLong(fields[3]));
-            } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość categoryId: " + fields[3]);
-                dto.setCategoryId(null);
-            }
-        }
-
-        // subCategoryId
-        if (fields.length > 4 && !fields[4].isEmpty()) {
-            try {
-                dto.setSubCategoryId(Long.parseLong(fields[4]));
-            } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość subCategoryId: " + fields[4]);
-                dto.setSubCategoryId(null);
-            }
-        }
-
-        dto.setPdfUrl(fields.length > 5 ? fields[5] : null);
-
-        // brandId
-        if (fields.length > 6 && !fields[6].isEmpty()) {
-            try {
-                dto.setBrandId(Long.parseLong(fields[6]));
-            } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość brandId: " + fields[6]);
-                dto.setBrandId(null);
-            }
-        }
-
-        if (fields.length > 7 && !fields[7].isEmpty()) {
-            dto.setImages(List.of(fields[7].split(",")));
-        }
-
-        return dto;
-    }*/
 
     @Transactional
     public int importProductsFromCsv(MultipartFile file) {
@@ -261,47 +203,64 @@ public class ProductService {
     private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
         String[] fields = line.split(";", -1);
         ProductDto dto = new ProductDto();
+        Integer idx;
 
         // Name
-        Integer idx = headerMap.get("name");
+        idx = headerMap.get("name");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             dto.setName(fields[idx]);
         }
 
         // Description PL
-        idx = headerMap.get("descriptionpl");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setDescriptionPL(List.of(fields[idx]));
+        String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
+        for (String key : descPLKeys) {
+            idx = headerMap.get(key);
+            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+                dto.setDescriptionPL(List.of(fields[idx]));
+                break;
+            }
         }
 
         // Description ENG
-        idx = headerMap.get("descriptioneng");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setDescriptionENG(List.of(fields[idx]));
+        String[] descENGKeys = {"descriptioneng", "description_eng", "descriptionEng"};
+        for (String key : descENGKeys) {
+            idx = headerMap.get(key);
+            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+                dto.setDescriptionENG(List.of(fields[idx]));
+                break;
+            }
         }
 
         // CategoryId
         idx = headerMap.get("categoryid");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             try {
-                dto.setCategoryId(Long.parseLong(fields[idx]));
+                Long catId = Long.parseLong(fields[idx]);
+                dto.setCategoryId(catId);
             } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość categoryId: " + fields[idx]);
+                System.err.println("⚠️ Nieprawidłowa wartość categoryId: " + fields[idx] + " → ustawiono null");
+                dto.setCategoryId(null);
             }
+        } else {
+            dto.setCategoryId(null);
         }
 
         // SubCategoryId
         idx = headerMap.get("subcategoryid");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             try {
-                dto.setSubCategoryId(Long.parseLong(fields[idx]));
+                Long subId = Long.parseLong(fields[idx]);
+                dto.setSubCategoryId(subId);
             } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość subCategoryId: " + fields[idx]);
+                System.err.println("⚠️ Nieprawidłowa wartość subCategoryId: " + fields[idx] + " → ustawiono null");
+                dto.setSubCategoryId(null);
             }
+        } else {
+            dto.setSubCategoryId(null);
         }
 
         // PDF URL
-        idx = headerMap.get("pdfurl");
+        idx = headerMap.get("pdf");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             dto.setPdfUrl(fields[idx]);
         }
@@ -310,16 +269,22 @@ public class ProductService {
         idx = headerMap.get("brandid");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             try {
-                dto.setBrandId(Long.parseLong(fields[idx]));
+                Long brandId = Long.parseLong(fields[idx]);
+                dto.setBrandId(brandId);
             } catch (NumberFormatException e) {
-                System.err.println("Nieprawidłowa wartość brandId: " + fields[idx]);
+                System.err.println("⚠️ Nieprawidłowa wartość brandId: " + fields[idx] + " → ustawiono null");
+                dto.setBrandId(null);
             }
+        } else {
+            dto.setBrandId(null);
         }
 
         // Images
         idx = headerMap.get("images");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             dto.setImages(List.of(fields[idx].split(",")));
+        } else {
+            dto.setImages(null);
         }
 
         return dto;

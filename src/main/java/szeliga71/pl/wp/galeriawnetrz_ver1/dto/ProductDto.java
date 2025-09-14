@@ -3,6 +3,8 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -14,9 +16,15 @@ public class ProductDto {
     private String name;
     private List<String> descriptionENG;
     private List<String> descriptionPL;
+    @NotNull
+    @Min(1)
     private Long categoryId;
+    @NotNull
+    @Min(1)
     private Long subCategoryId;
     private String pdfUrl;
+    @NotNull
+    @Min(1)
     private Long brandId;
     private List<String> images;
     private String coverImageUrl;
