@@ -27,11 +27,6 @@ public class SubCategoriesController {
         this.subCategoriesService = subCategoriesService;
     }
 
-    /*@GetMapping
-    public List<SubCategories> getAllSubCategories() {
-        return subCategoriesRepo.findAll();
-    }*/
-
 
     @GetMapping("/{id}")
     public Optional<SubCategories> getSubCategoryById(@PathVariable Long id) {
@@ -55,9 +50,4 @@ public class SubCategoriesController {
         return ResponseEntity.ok(list);
     }
 
-    /*@PostMapping
-    public ResponseEntity<SubCategoriesDto> createSubCategory(@RequestBody SubCategoriesDto dto) {
-        SubCategoriesDto saved = subCategoriesService.saveSubCategory(dto);
-        return ResponseEntity.ok(saved);
-    }*/
 }

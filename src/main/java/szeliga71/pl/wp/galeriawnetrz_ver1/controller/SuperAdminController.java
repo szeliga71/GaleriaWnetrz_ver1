@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.controller;
 
+import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,18 @@ public class SuperAdminController {
 
     public SuperAdminController(UserService userService) {
         this.userService = userService;
+    }
+    @DeleteMapping("/user/{id}")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<Void> deleteUserById(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.noContent().build();
+    }
+    @DeleteMapping("/user/{username}")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<Void> deleteUserByName(@PathVariable String username) {
+        userService.deleteUserByName(username);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/users")
@@ -32,7 +45,6 @@ public class SuperAdminController {
     }
     @GetMapping("/users")
     @PreAuthorize("hasRole('SUPERADMIN')")
-
     public ResponseEntity<?> getAllUsers() {
         java.util.List<AppUser> users = userService.getAllUsers();
 

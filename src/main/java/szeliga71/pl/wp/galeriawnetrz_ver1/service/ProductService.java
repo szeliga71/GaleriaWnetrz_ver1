@@ -222,7 +222,7 @@ public class ProductService {
         }
 
         // Description ENG
-        String[] descENGKeys = {"descriptioneng", "description_eng", "descriptionEng"};
+        String[] descENGKeys = {"desc","descriptioneng", "description_eng", "descriptionEng"};
         for (String key : descENGKeys) {
             idx = headerMap.get(key);
             if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {

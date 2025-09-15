@@ -17,6 +17,10 @@ public class BrandService {
     @Autowired
     BrandsRepo brandsRepo;
 
+    public  void deleteBrand(Long id) {
+        brandsRepo.deleteById(id);
+    }
+
     public List<BrandDto> getAllBrands() {
         return brandsRepo.findAll()
                 .stream()
@@ -84,6 +88,7 @@ public class BrandService {
     }
 
 
-
-
+    public void deleteAllBrands() {
+            brandsRepo.deleteAll();
+    }
 }

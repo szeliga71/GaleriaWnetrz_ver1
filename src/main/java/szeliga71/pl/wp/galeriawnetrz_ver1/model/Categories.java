@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public class Categories {
     @Column(unique = true)
     private String slugCategoryName;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<SubCategories> subCategories = new ArrayList<>();
 
     public Long getCategoryId() {

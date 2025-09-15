@@ -66,4 +66,11 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public void deleteUserById(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    public void deleteUserByName(String username) {
+        userRepository.deleteByUsername(username);
+    }
 }

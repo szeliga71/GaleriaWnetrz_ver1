@@ -8,16 +8,8 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 
 import java.util.List;
 
-
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoriesDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoriesDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 
-import java.util.List;
 
 @Service
 @Transactional
@@ -29,10 +21,6 @@ public class CategorieService {
         this.categoriesRepo = categoriesRepo;
     }
 
-    // Pobranie wszystkich kategorii
-    /*public List<Categories> getAllCategories() {
-        return categoriesRepo.findAll();
-    }*/
     public List<CategoriesDto> getAllCategories() {
         return categoriesRepo.findAll()
                 .stream()
@@ -42,6 +30,7 @@ public class CategorieService {
 
 
     // Pobranie kategorii po ID
+    @Transactional
     public Categories getCategoryById(Long id) {
         return categoriesRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -80,7 +69,7 @@ public class CategorieService {
     }
 
     // Mapowanie encja -> DTO
-    private CategoriesDto mapToDto(Categories category) {
+    public CategoriesDto mapToDto(Categories category) {
         CategoriesDto dto = new CategoriesDto();
         dto.setCategoryId(category.getCategoryId());
         dto.setCategoryName(category.getCategoryName());
@@ -95,6 +84,9 @@ public class CategorieService {
                                 SubCategoriesDto scDto = new SubCategoriesDto();
                                 scDto.setSubCategoryId(sc.getSubCategoryId());
                                 scDto.setSubCategoryName(sc.getSubCategoryName());
+                                scDto.setSubCategoryImageUrl(sc.getSubCategoryImageUrl());
+                                scDto.setSlugSubCategoryName(sc.getSlugSubCategoryName());
+                                scDto.setCategoryId(sc.getCategory().getCategoryId()); // tylko ID
                                 return scDto;
                             })
                             .toList()

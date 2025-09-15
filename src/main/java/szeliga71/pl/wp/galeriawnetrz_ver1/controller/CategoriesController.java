@@ -9,7 +9,7 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.service.CategorieService;
 
 import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/categories")
@@ -24,12 +24,13 @@ public class CategoriesController {
         this.categorieService = categorieService;
     }
 
-    /*@GetMapping
-    public List<Categories> getAllCategories() {
-        return categoriesRepo.findAll();
-    }*/
+    @GetMapping
+    public ResponseEntity<List<CategoriesDto>> getAllCategories() {
+        List<CategoriesDto> categories = categorieService.getAllCategories();
+        return ResponseEntity.ok(categories);
+    }
 
-    @GetMapping("/categories")
+    /*@GetMapping("/categories")
     public ResponseEntity<List<CategoriesDto>> getAllCategories() {
         List<CategoriesDto> categories = categorieService.getAllCategories()
                 .stream()
@@ -43,19 +44,16 @@ public class CategoriesController {
                 })
                 .toList();
         return ResponseEntity.ok(categories);
-    }
+    }*/
+
 
     @GetMapping("/{id}")
-    public Optional<Categories> getCategoryById(@PathVariable Long id) {
-        return categoriesRepo.findById(id);
+    public ResponseEntity<CategoriesDto> getCategoryById(@PathVariable Long id) {
+        Categories category = categorieService.getCategoryById(id);
+        CategoriesDto dto = categorieService.mapToDto(category);
+        return ResponseEntity.ok(dto);
     }
 
 
-
-    /*@PostMapping
-    public ResponseEntity<CategoriesDto> createCategory(@RequestBody CategoriesDto categoryDto) {
-        CategoriesDto savedCategory = categorieService.saveCategory(categoryDto);
-        return ResponseEntity.ok(savedCategory);
-    }*/
 }
 

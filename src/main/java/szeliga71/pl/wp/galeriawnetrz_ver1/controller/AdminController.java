@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoriesDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
@@ -62,6 +63,53 @@ public class AdminController {
     @DeleteMapping("/products")
     public ResponseEntity<Void> deleteAllProducts() {
         productService.deleteAllProducts();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @PostMapping(
+            value = "/import/products",
+            consumes = {"multipart/form-data"}
+    )
+
+    public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+
+        int count = productService.importProductsFromCsv(file);
+        return ResponseEntity.ok("Imported " + count + " products");
+    }
+
+    @DeleteMapping("/category/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categorieService.deleteCategory(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/categories")
+    public ResponseEntity<Void> deleteAllCategories() {
+        categorieService.deleteAllCategories();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @DeleteMapping("/subCategory/{id}")
+    public ResponseEntity<Void> deleteSubCategory(@PathVariable Long id) {
+        subCategoriesService.deleteSubCategory(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/subCategories")
+    public ResponseEntity<Void> deleteAllSubCategories() {
+        subCategoriesService.deleteAllSubCategories();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @DeleteMapping("/brand/{id}")
+    public ResponseEntity<Void> deleteBrand(@PathVariable Long id) {
+        brandService.deleteBrand(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/brands")
+    public ResponseEntity<Void> deleteAllBrands() {
+        brandService.deleteAllBrands();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
 
