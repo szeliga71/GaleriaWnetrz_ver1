@@ -11,18 +11,22 @@ public class Posts {
     @GeneratedValue
     @Column(columnDefinition = "uuid", updatable = false, nullable = false)
     private UUID postId;
+
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT",name = "content")
     private String content;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "post_images",
             joinColumns = @JoinColumn(name = "post_id")
     )
     @Column(name = "image_url")
     private List<String> images;
+
+
+
 
     public UUID getPostId() {
         return postId;

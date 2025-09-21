@@ -17,7 +17,7 @@ public class BrandService {
     @Autowired
     BrandsRepo brandsRepo;
 
-    public  void deleteBrand(Long id) {
+    public void deleteBrand(Long id) {
         brandsRepo.deleteById(id);
     }
 
@@ -81,6 +81,7 @@ public class BrandService {
                 .replaceAll("[^a-z0-9]+", "-")  // zamień spacje/znaki na "-"
                 .replaceAll("^-|-$", "");       // usuń "-" z początku/końca
     }
+
     public BrandDto saveBrand(BrandDto dto) {
         Brands brand = mapToEntity(dto);
         Brands saved = brandsRepo.save(brand);
@@ -89,6 +90,6 @@ public class BrandService {
 
 
     public void deleteAllBrands() {
-            brandsRepo.deleteAll();
+        brandsRepo.deleteAll();
     }
 }

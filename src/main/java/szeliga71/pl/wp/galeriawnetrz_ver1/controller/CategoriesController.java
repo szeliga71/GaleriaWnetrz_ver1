@@ -19,7 +19,7 @@ public class CategoriesController {
     private final CategorieService categorieService;
 
     @Autowired
-    public CategoriesController(CategoriesRepo categoriesRepo,CategorieService categorieService) {
+    public CategoriesController(CategoriesRepo categoriesRepo, CategorieService categorieService) {
         this.categoriesRepo = categoriesRepo;
         this.categorieService = categorieService;
     }
@@ -30,30 +30,11 @@ public class CategoriesController {
         return ResponseEntity.ok(categories);
     }
 
-    /*@GetMapping("/categories")
-    public ResponseEntity<List<CategoriesDto>> getAllCategories() {
-        List<CategoriesDto> categories = categorieService.getAllCategories()
-                .stream()
-                .map(c -> {
-                    CategoriesDto dto = new CategoriesDto();
-                    dto.setCategoryId(c.getCategoryId());
-                    dto.setCategoryName(c.getCategoryName());
-                    dto.setCategoryImageUrl(c.getCategoryImageUrl());
-                    dto.setSlugCategoryName(c.getSlugCategoryName());
-                    return dto;
-                })
-                .toList();
-        return ResponseEntity.ok(categories);
-    }*/
-
-
     @GetMapping("/{id}")
     public ResponseEntity<CategoriesDto> getCategoryById(@PathVariable Long id) {
         Categories category = categorieService.getCategoryById(id);
         CategoriesDto dto = categorieService.mapToDto(category);
         return ResponseEntity.ok(dto);
     }
-
-
 }
 

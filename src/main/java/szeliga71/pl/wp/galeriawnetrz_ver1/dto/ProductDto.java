@@ -26,24 +26,50 @@ public class ProductDto {
     @NotNull
     @Min(1)
     private Long brandId;
+    //private String brandName;
     private List<String> images;
     private String coverImageUrl;
 
 
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
+    public Long getProductId() {
+        return productId;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
 
-    public List<String> getDescriptionENG() { return descriptionENG; }
-    public void setDescriptionENG(List<String> descriptionENG) { this.descriptionENG = descriptionENG; }
+    public String getName() {
+        return name;
+    }
 
-    public List<String> getDescriptionPL() { return descriptionPL; }
-    public void setDescriptionPL(List<String> descriptionPL) { this.descriptionPL = descriptionPL; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public Long getCategoryId() { return categoryId; }
-    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public List<String> getDescriptionENG() {
+        return descriptionENG;
+    }
+
+    public void setDescriptionENG(List<String> descriptionENG) {
+        this.descriptionENG = descriptionENG;
+    }
+
+    public List<String> getDescriptionPL() {
+        return descriptionPL;
+    }
+
+    public void setDescriptionPL(List<String> descriptionPL) {
+        this.descriptionPL = descriptionPL;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
 
     public Long getSubCategoryId() {
         return subCategoryId;
@@ -53,13 +79,26 @@ public class ProductDto {
         this.subCategoryId = subCategoryId;
     }
 
-    public String getPdfUrl() { return pdfUrl; }
-    public void setPdfUrl(String pdfUrl) { this.pdfUrl = pdfUrl; }
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
 
-    public Long getBrandId() { return brandId; }
-    public void setBrandId(Long brandId) { this.brandId = brandId; }
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
 
-    public List<String> getImages() { return images; }
+    public Long getBrandId() {
+        return brandId;
+    }
+
+    public void setBrandId(Long brandId) {
+        this.brandId = brandId;
+    }
+
+    public List<String> getImages() {
+        return images;
+    }
+
     public void setImages(List<String> images) {
         this.images = images;
         if (images != null && !images.isEmpty()) {
@@ -67,8 +106,13 @@ public class ProductDto {
         }
     }
 
-    public String getCoverImageUrl() { return coverImageUrl; }
-    public void setCoverImageUrl(String coverImageUrl) { this.coverImageUrl = coverImageUrl; }
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
 }
 
 

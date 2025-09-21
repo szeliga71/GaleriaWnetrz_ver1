@@ -6,6 +6,7 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.dto.PostsDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Posts;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.PostsRepo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +29,8 @@ public class PostsService {
     }
 
     public Optional<PostsDto> getPostById(UUID postId) {
-        return postsRepo.findById(postId).map(this::mapToDto);
+        return postsRepo.findById(postId)
+                .map(this::mapToDto);
     }
 
     public PostsDto savePost(PostsDto dto) {
@@ -42,8 +44,8 @@ public class PostsService {
         PostsDto dto = new PostsDto();
         dto.setPostId(post.getPostId());
         dto.setTitle(post.getTitle());
-        dto.setContent(post.getContent());
-        dto.setImages(post.getImages());
+        dto.setContent(splitText(post.getContent(), 100));
+        dto.setImages(new ArrayList<>(post.getImages()));
         return dto;
     }
 
@@ -51,9 +53,19 @@ public class PostsService {
     private Posts mapToEntity(PostsDto dto) {
         Posts post = new Posts();
         post.setTitle(dto.getTitle());
-        post.setContent(dto.getContent());
+        post.setContent(dto.getContent() != null ? String.join("", dto.getContent()) : null);
         post.setImages(dto.getImages());
         return post;
     }
+
+    private List<String> splitText(String text, int size) {
+        if (text == null) return null;
+        List<String> parts = new ArrayList<>();
+        for (int i = 0; i < text.length(); i += size) {
+            parts.add(text.substring(i, Math.min(text.length(), i + size)));
+        }
+        return parts;
+    }
+
 }
 

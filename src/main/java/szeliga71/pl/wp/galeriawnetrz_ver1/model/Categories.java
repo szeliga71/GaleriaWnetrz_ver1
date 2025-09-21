@@ -20,7 +20,7 @@ public class Categories {
     @Column(unique = true)
     private String slugCategoryName;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnore
     private List<SubCategories> subCategories = new ArrayList<>();
 

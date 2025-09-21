@@ -7,7 +7,8 @@ import java.util.List;
 
 
 public interface SubCategoriesRepo extends JpaRepository<SubCategories, Long> {
-        List<SubCategories> findByCategory_CategoryId(Long categoryId);
-        boolean existsBySlugSubCategoryName(String slugSubCategoryName);
-    }
+    List<SubCategories> findByCategory_CategoryId(Long categoryId);
+
+    boolean existsBySlugSubCategoryName(String slugSubCategoryName);
+}
 

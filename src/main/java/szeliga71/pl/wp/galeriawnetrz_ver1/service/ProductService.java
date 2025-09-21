@@ -50,34 +50,51 @@ public class ProductService {
                 .map(this::mapToDto);
     }
 
+
     public List<ProductDto> getProductsByCategory(Long categoryId) {
-        return productsRepo.findByCategoryId(categoryId)
+        return productsRepo.findByCategory_CategoryId(categoryId)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
-    public List<ProductDto> getProductsByBrand(Long brandId) {
-        return productsRepo.findByBrandId(brandId)
+    public List<ProductDto> getProductsByBrandId(Long brandId) {
+        return productsRepo.findByBrand_BrandId(brandId)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
     public List<ProductDto> getProductsBySubCategory(Long subCategoryId) {
-        return productsRepo.findBySubCategoryId(subCategoryId)
+        return productsRepo.findBySubCategory_SubCategoryId(subCategoryId)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
+
+    public List<ProductDto> getProductsByCategoryName(String categoryName) {
+        return productsRepo.findByCategory_CategoryNameIgnoreCase(categoryName)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
+        return productsRepo.findBySubCategory_SubCategoryNameIgnoreCase(subCategoryName)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+
     public void deleteProduct(Long id) {
         productsRepo.deleteById(id);
     }
+
     public void deleteAllProducts() {
         productsRepo.deleteAll();
         em.createNativeQuery("ALTER SEQUENCE products_product_id_seq RESTART WITH 1").executeUpdate();
     }
-
 
 
     private List<String> splitText(String text, int size) {
@@ -90,7 +107,33 @@ public class ProductService {
     }
 
     public ProductDto saveProduct(ProductDto dto) {
-        Products product = mapToEntity(dto);
+        Products product;
+
+        if (dto.getProductId() != null) {
+            product = productsRepo.findById(dto.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getProductId()));
+        } else {
+            product = new Products();
+        }
+
+        product.setName(dto.getName());
+        product.setPdfUrl(dto.getPdfUrl());
+        product.setImages(dto.getImages());
+        product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
+        product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
+
+        if (dto.getCategoryId() != null) {
+            categoriesRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
+        }
+
+        if (dto.getSubCategoryId() != null) {
+            subCategoriesRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
+        }
+        if (dto.getBrandId() != null) {
+            brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
+        }
+
+
         Products saved = productsRepo.save(product);
         return mapToDto(saved);
     }
@@ -101,15 +144,17 @@ public class ProductService {
         dto.setProductId(product.getProductId());
         dto.setName(product.getName());
         dto.setPdfUrl(product.getPdfUrl());
-        dto.setBrandId(product.getBrandId());
         dto.setImages(product.getImages());
         dto.setDescriptionENG(splitText(product.getDescriptionENG(), 100));
         dto.setDescriptionPL(splitText(product.getDescriptionPL(), 100));
-        dto.setCategoryId(product.getCategoryId());
-        dto.setSubCategoryId(product.getSubCategoryId());
+
+        dto.setCategoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null);
+        dto.setSubCategoryId(product.getSubCategory() != null ? product.getSubCategory().getSubCategoryId() : null);
+
+        dto.setBrandId(product.getBrand() != null ? product.getBrand().getBrandId() : null);
+
         return dto;
     }
-
 
     private Products mapToEntity(ProductDto dto) {
         Products product = new Products();
@@ -119,28 +164,14 @@ public class ProductService {
         product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
         product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
 
-        // categoryId – walidacja
-        if (dto.getCategoryId() != null && categoriesRepo.existsById(dto.getCategoryId())) {
-            product.setCategoryId(dto.getCategoryId());
-        } else {
-            product.setCategoryId(null);
-            System.err.println("⚠️ Nieprawidłowe categoryId: " + dto.getCategoryId() + " → ustawiono null");
+        if (dto.getCategoryId() != null) {
+            categoriesRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
         }
-
-        // subCategoryId – walidacja
-        if (dto.getSubCategoryId() != null && subCategoriesRepo.existsById(dto.getSubCategoryId())) {
-            product.setSubCategoryId(dto.getSubCategoryId());
-        } else {
-            product.setSubCategoryId(null);
-            System.err.println("⚠️ Nieprawidłowe subCategoryId: " + dto.getSubCategoryId() + " → ustawiono null");
+        if (dto.getSubCategoryId() != null) {
+            subCategoriesRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
         }
-
-        // brandId – walidacja
-        if (dto.getBrandId() != null && brandsRepo.existsById(dto.getBrandId())) {
-            product.setBrandId(dto.getBrandId());
-        } else {
-            product.setBrandId(null);
-            System.err.println("⚠️ Nieprawidłowe brandId: " + dto.getBrandId() + " → ustawiono null");
+        if (dto.getBrandId() != null) {
+            brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
         }
 
         return product;
@@ -164,7 +195,7 @@ public class ProductService {
                 lineNumber++;
 
                 if (firstLine) {
-                    // mapujemy nagłówki: nazwaKolumny -> indeks
+
                     String[] headers = line.toLowerCase().split(";", -1);
                     for (int i = 0; i < headers.length; i++) {
                         headerMap.put(headers[i].trim(), i);
@@ -200,18 +231,17 @@ public class ProductService {
         return importedCount;
     }
 
+
     private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
         String[] fields = line.split(";", -1);
         ProductDto dto = new ProductDto();
         Integer idx;
 
-        // Name
         idx = headerMap.get("name");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             dto.setName(fields[idx]);
         }
 
-        // Description PL
         String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
         for (String key : descPLKeys) {
             idx = headerMap.get(key);
@@ -221,8 +251,7 @@ public class ProductService {
             }
         }
 
-        // Description ENG
-        String[] descENGKeys = {"desc","descriptioneng", "description_eng", "descriptionEng"};
+        String[] descENGKeys = {"desc", "descriptioneng", "description_eng", "descriptionEng"};
         for (String key : descENGKeys) {
             idx = headerMap.get(key);
             if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
@@ -231,32 +260,36 @@ public class ProductService {
             }
         }
 
-        // CategoryId
         idx = headerMap.get("categoryid");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             try {
-                Long catId = Long.parseLong(fields[idx]);
-                dto.setCategoryId(catId);
+                dto.setCategoryId(Long.parseLong(fields[idx]));
             } catch (NumberFormatException e) {
                 System.err.println("⚠️ Nieprawidłowa wartość categoryId: " + fields[idx] + " → ustawiono null");
                 dto.setCategoryId(null);
             }
-        } else {
-            dto.setCategoryId(null);
         }
 
-        // SubCategoryId
+        idx = headerMap.get("categoryname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long catId = findOrCreateCategoryByName(fields[idx]);
+            dto.setCategoryId(catId);
+        }
+
         idx = headerMap.get("subcategoryid");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             try {
-                Long subId = Long.parseLong(fields[idx]);
-                dto.setSubCategoryId(subId);
+                dto.setSubCategoryId(Long.parseLong(fields[idx]));
             } catch (NumberFormatException e) {
                 System.err.println("⚠️ Nieprawidłowa wartość subCategoryId: " + fields[idx] + " → ustawiono null");
                 dto.setSubCategoryId(null);
             }
-        } else {
-            dto.setSubCategoryId(null);
+        }
+
+        idx = headerMap.get("subcategoryname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long subId = findOrCreateSubCategoryByName(fields[idx], dto.getCategoryId());
+            dto.setSubCategoryId(subId);
         }
 
         // PDF URL
@@ -265,21 +298,12 @@ public class ProductService {
             dto.setPdfUrl(fields[idx]);
         }
 
-        // BrandId
-        idx = headerMap.get("brandid");
+        idx = headerMap.get("brandname");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            try {
-                Long brandId = Long.parseLong(fields[idx]);
-                dto.setBrandId(brandId);
-            } catch (NumberFormatException e) {
-                System.err.println("⚠️ Nieprawidłowa wartość brandId: " + fields[idx] + " → ustawiono null");
-                dto.setBrandId(null);
-            }
-        } else {
-            dto.setBrandId(null);
+            Long branId = findOrCreateBrandByBrandName(fields[idx]);
+            dto.setBrandId(branId);
         }
 
-        // Images
         idx = headerMap.get("images");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
             dto.setImages(List.of(fields[idx].split(",")));
@@ -290,8 +314,87 @@ public class ProductService {
         return dto;
     }
 
+    private Long findOrCreateBrandByBrandName(String brandname) {
+        if (brandname == null || brandname.isBlank()) return null;
+
+        return brandsRepo.findAll().stream()
+                .filter(c -> c.getBrandName().equalsIgnoreCase(brandname.trim()))
+                .findFirst()
+                .map(c -> c.getBrandId())
+                .orElseGet(() -> {
+                    // Tworzymy nową kategorię
+                    var newCat = new szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands();
+                    newCat.setBrandName(brandname.trim());
+                    brandsRepo.save(newCat);
+                    return newCat.getBrandId();
+                });
+    }
 
 
+    private Long findOrCreateCategoryByName(String name) {
+        if (name == null || name.isBlank()) return null;
+
+        return categoriesRepo.findAll().stream()
+                .filter(c -> c.getCategoryName().equalsIgnoreCase(name.trim()))
+                .findFirst()
+                .map(c -> c.getCategoryId())
+                .orElseGet(() -> {
+                    // Tworzymy nową kategorię
+                    var newCat = new szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories();
+                    newCat.setCategoryName(name.trim());
+                    categoriesRepo.save(newCat);
+                    return newCat.getCategoryId();
+                });
+    }
+
+    private Long findOrCreateSubCategoryByName(String name, Long categoryId) {
+        if (name == null || name.isBlank() || categoryId == null) return null;
+
+        return subCategoriesRepo.findAll().stream()
+                .filter(sc -> sc.getSubCategoryName().equalsIgnoreCase(name.trim()) &&
+                        sc.getCategory() != null &&
+                        Objects.equals(sc.getCategory().getCategoryId(), categoryId))
+                .findFirst()
+                .map(sc -> sc.getSubCategoryId())
+                .orElseGet(() -> {
+                    // Tworzymy nową subkategorię
+                    var cat = categoriesRepo.findById(categoryId)
+                            .orElseThrow(() -> new RuntimeException("Category not found for subcategory"));
+                    var newSub = new szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories();
+                    newSub.setSubCategoryName(name.trim());
+                    newSub.setCategory(cat);
+                    subCategoriesRepo.save(newSub);
+                    return newSub.getSubCategoryId();
+                });
+    }
+
+    public List<ProductDto> getProductsByCategoryAndSubCategory(Long categoryId, Long subCategoryId) {
+        return productsRepo.findByCategory_CategoryIdAndSubCategory_SubCategoryId(categoryId, subCategoryId)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<ProductDto> getProductByName(String productName) {
+        return productsRepo.findByNameIgnoreCase(productName)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<ProductDto> getProductsByCategoryNameAndSubCategoryName(String categoryName, String subCategoryName) {
+        return productsRepo.findByCategory_CategoryNameAndSubCategory_SubCategoryName(categoryName, subCategoryName)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    public List<ProductDto> getProductsByBrandName(String brandName) {
+        return productsRepo.findByBrand_BrandNameIgnoreCase(brandName)
+                .stream()
+                .map(this::mapToDto)
+                .toList();
+    }
 }
 
 

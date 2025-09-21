@@ -7,26 +7,35 @@ import java.util.List;
 @Entity
 @Table(name = "products")
 public class Products {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long productId;
+
     @Column(name = "name")
     private String name;
 
-    @Column(columnDefinition = "TEXT",name = "descriptionpl")
+    @Column(columnDefinition = "TEXT", name = "descriptionpl")
     private String descriptionPL;
 
-    @Column(columnDefinition = "TEXT",name = "descriptioneng")
+    @Column(columnDefinition = "TEXT", name = "descriptioneng")
     private String descriptionENG;
-    @JoinColumn(name = "category_id")
-    private Long categoryId;
-    @JoinColumn(name = "sub_category_id")
-    private Long subCategoryId;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "category_id", nullable = true)
+    private Categories category;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "sub_category_id", nullable = true)
+    private SubCategories subCategory;
+
     @Column(name = "pdf_url")
     private String pdfUrl;
-    @Column(name = "brand_id")
-    private Long brandId;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "brand_id", nullable = true)//,insertable = false, updatable = false)
+    private Brands brand;
 
     @ElementCollection
     @CollectionTable(
@@ -35,7 +44,6 @@ public class Products {
     )
     @Column(name = "image_url")
     private List<String> images;
-
 
     public Long getProductId() {
         return productId;
@@ -69,20 +77,20 @@ public class Products {
         this.descriptionENG = descriptionENG;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public Categories getCategory() {
+        return category;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(Categories category) {
+        this.category = category;
     }
 
-    public Long getSubCategoryId() {
-        return subCategoryId;
+    public SubCategories getSubCategory() {
+        return subCategory;
     }
 
-    public void setSubCategoryId(Long subCategoryId) {
-        this.subCategoryId = subCategoryId;
+    public void setSubCategory(SubCategories subCategory) {
+        this.subCategory = subCategory;
     }
 
     public String getPdfUrl() {
@@ -93,13 +101,6 @@ public class Products {
         this.pdfUrl = pdfUrl;
     }
 
-    public Long getBrandId() {
-        return brandId;
-    }
-
-    public void setBrandId(Long brandId) {
-        this.brandId = brandId;
-    }
 
     public List<String> getImages() {
         return images;
@@ -108,4 +109,13 @@ public class Products {
     public void setImages(List<String> images) {
         this.images = images;
     }
+
+    public Brands getBrand() {
+        return brand;
+    }
+
+    public void setBrand(Brands brand) {
+        this.brand = brand;
+    }
+
 }

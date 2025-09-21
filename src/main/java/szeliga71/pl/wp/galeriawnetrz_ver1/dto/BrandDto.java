@@ -2,7 +2,6 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 
 import java.util.List;
 

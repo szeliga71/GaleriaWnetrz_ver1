@@ -16,7 +16,6 @@ public class CategoriesDto {
     private List<SubCategoriesDto> subCategories;
 
 
-
     public Long getCategoryId() {
         return categoryId;
     }

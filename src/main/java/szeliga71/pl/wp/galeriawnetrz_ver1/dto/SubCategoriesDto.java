@@ -2,15 +2,21 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public class SubCategoriesDto {
 
     @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long subCategoryId;
+    @NotBlank(message = "SubCategory name cannot be blank")
     private String subCategoryName;
     private String subCategoryImageUrl;
     private String slugSubCategoryName;
+    @NotNull(message = "CategoryId is required")
+    @Positive(message = "CategoryId must be greater than 0")
     private Long categoryId;
 
     public Long getSubCategoryId() {
@@ -48,6 +54,7 @@ public class SubCategoriesDto {
     public Long getCategoryId() {
         return categoryId;
     }
+
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }

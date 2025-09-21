@@ -28,15 +28,12 @@ public class CategorieService {
                 .toList();
     }
 
-
-    // Pobranie kategorii po ID
     @Transactional
     public Categories getCategoryById(Long id) {
         return categoriesRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
-    // Zapis kategorii
     public CategoriesDto saveCategory(CategoriesDto dto) {
         Categories category = new Categories();
         category.setCategoryName(dto.getCategoryName());
@@ -47,7 +44,6 @@ public class CategorieService {
         return mapToDto(saved);
     }
 
-    // Aktualizacja kategorii
     public CategoriesDto updateCategory(Long id, CategoriesDto dto) {
         Categories category = getCategoryById(id);
         category.setCategoryName(dto.getCategoryName());
@@ -58,17 +54,14 @@ public class CategorieService {
         return mapToDto(saved);
     }
 
-    // Usunięcie kategorii
     public void deleteCategory(Long id) {
         categoriesRepo.deleteById(id);
     }
 
-    // Usunięcie wszystkich kategorii
     public void deleteAllCategories() {
         categoriesRepo.deleteAll();
     }
 
-    // Mapowanie encja -> DTO
     public CategoriesDto mapToDto(Categories category) {
         CategoriesDto dto = new CategoriesDto();
         dto.setCategoryId(category.getCategoryId());
@@ -76,7 +69,6 @@ public class CategorieService {
         dto.setCategoryImageUrl(category.getCategoryImageUrl());
         dto.setSlugCategoryName(category.getSlugCategoryName());
 
-        // Mapowanie subkategorii
         if (category.getSubCategories() != null && !category.getSubCategories().isEmpty()) {
             dto.setSubCategories(
                     category.getSubCategories().stream()
@@ -96,7 +88,6 @@ public class CategorieService {
         return dto;
     }
 
-    // Generowanie slug
     private String generateSlug(String name) {
         if (name == null) return null;
         return name.toLowerCase()
