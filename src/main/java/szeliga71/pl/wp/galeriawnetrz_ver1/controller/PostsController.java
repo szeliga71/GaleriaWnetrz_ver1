@@ -36,9 +36,31 @@ public class PostsController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<PostsDto> createPost(@RequestBody PostsDto dto) {
         PostsDto saved = postsService.savePost(dto);
         return ResponseEntity.ok(saved);
+    }
+    @DeleteMapping("/deleteAll")
+    public ResponseEntity<Void> deleteAllPosts() {
+        postsService.deleteAllPosts();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+    @DeleteMapping("/deleteById/{id}")
+    public ResponseEntity<Void> deletePostById(@PathVariable UUID id) {
+        postsService.deletePostById(id);
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<PostsDto> updatePost(@PathVariable UUID id, @RequestBody PostsDto dto) {
+        return postsService.updatePost(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<PostsDto> patchPost(@PathVariable UUID id, @RequestBody PostsDto dto) {
+        return postsService.patchPost(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

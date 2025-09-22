@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Products;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductsRepo;
@@ -176,9 +178,82 @@ public class ProductService {
 
         return product;
     }
-
-
     @Transactional
+    public int importProductsFromCsv(MultipartFile file) {
+        List<Products> batch = new ArrayList<>();
+        int importedCount = 0;
+        int lineNumber = 0;
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+            String line;
+            Map<String, Integer> headerMap = new HashMap<>();
+            boolean firstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                lineNumber++;
+
+                if (firstLine) {
+                    String[] headers = line.toLowerCase().split(";", -1);
+                    for (int i = 0; i < headers.length; i++) {
+                        headerMap.put(headers[i].trim(), i);
+                    }
+                    firstLine = false;
+                    continue;
+                }
+
+                try {
+                    ProductDto dto = parseLineWithHeaders(line, headerMap);
+
+                    // 1️⃣ Sprawdź kategorię
+                    Optional<Categories> categoryOpt = categoriesRepo.findById(dto.getCategoryId());
+                    if (categoryOpt.isEmpty()) {
+                        Categories category = new Categories();
+                        category.setCategoryId(dto.getCategoryId());
+                        category.setCategoryName(dto.getName());
+                        categoriesRepo.save(category);
+                    }
+
+                    // 2️⃣ Sprawdź subkategorię
+                    Optional<SubCategories> subCategoryOpt = subCategoriesRepo.findById(dto.getSubCategoryId());
+                    if (subCategoryOpt.isEmpty()) {
+                        SubCategories subCategory = new SubCategories();
+                        subCategory.setSubCategoryId(dto.getSubCategoryId());
+                        subCategory.setSubCategoryName(dto.getName());
+                        //subCategory.setCategories(dto.getCategoryId());
+                        subCategoriesRepo.save(subCategory);
+                    }
+
+                    // 3️⃣ Mapowanie produktu
+                    Products entity = mapToEntity(dto);
+                    batch.add(entity);
+
+                    if (batch.size() == 500) {
+                        productsRepo.saveAll(batch);
+                        importedCount += batch.size();
+                        batch.clear();
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("Błąd w linii " + lineNumber + ": " + e.getMessage());
+                }
+            }
+
+            if (!batch.isEmpty()) {
+                productsRepo.saveAll(batch);
+                importedCount += batch.size();
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("CSV import failed: " + e.getMessage(), e);
+        }
+
+        return importedCount;
+    }
+
+
+   /* @Transactional
     public int importProductsFromCsv(MultipartFile file) {
         List<Products> batch = new ArrayList<>();
         int importedCount = 0;
@@ -229,18 +304,35 @@ public class ProductService {
         }
 
         return importedCount;
-    }
+    }*/
 
 
-    private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
+    /*private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
         String[] fields = line.split(";", -1);
         ProductDto dto = new ProductDto();
         Integer idx;
 
         idx = headerMap.get("name");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setName(fields[idx]);
+            // zamiast ustawiać product.name, ustawiamy brandName
+            Long brandId = findOrCreateBrandByBrandName(fields[idx]);
+            dto.setBrandId(brandId);
+
+            // product.name zostaje puste, chyba że inny plik CSV dostarczy np. "productname"
+            dto.setName(null);
         }
+
+        //idx = headerMap.get("productname");
+        //if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+          //  dto.setName(fields[idx]);
+        //}
+        idx = headerMap.get("brandname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long branId = findOrCreateBrandByBrandName(fields[idx]);
+            dto.setBrandId(branId);
+        }
+
+
 
         String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
         for (String key : descPLKeys) {
@@ -298,11 +390,7 @@ public class ProductService {
             dto.setPdfUrl(fields[idx]);
         }
 
-        idx = headerMap.get("brandname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long branId = findOrCreateBrandByBrandName(fields[idx]);
-            dto.setBrandId(branId);
-        }
+
 
         idx = headerMap.get("images");
         if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
@@ -312,7 +400,78 @@ public class ProductService {
         }
 
         return dto;
+    }*/
+    private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
+        String[] fields = line.split(";", -1);
+        ProductDto dto = new ProductDto();
+        Integer idx;
+
+
+        // ✅ Product name
+        idx = headerMap.get("name");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            dto.setName(fields[idx].trim());
+        }
+        // ✅ BrandName → findOrCreate
+        idx = headerMap.get("brandname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long brandId = findOrCreateBrandByBrandName(fields[idx]);
+            dto.setBrandId(brandId);
+        }
+
+
+
+        // ✅ Category by Name
+        idx = headerMap.get("categoryname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long catId = findOrCreateCategoryByName(fields[idx]);
+            dto.setCategoryId(catId);
+        }
+
+        // ✅ SubCategory by Name (powiązana z CategoryId)
+        idx = headerMap.get("subcategoryname");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            Long subId = findOrCreateSubCategoryByName(fields[idx], dto.getCategoryId());
+            dto.setSubCategoryId(subId);
+        }
+
+        // ✅ Description PL
+        String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
+        for (String key : descPLKeys) {
+            idx = headerMap.get(key);
+            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+                dto.setDescriptionPL(List.of(fields[idx]));
+                break;
+            }
+        }
+
+        // ✅ Description ENG
+        String[] descENGKeys = {"desc", "descriptioneng", "description_eng", "descriptionEng"};
+        for (String key : descENGKeys) {
+            idx = headerMap.get(key);
+            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+                dto.setDescriptionENG(List.of(fields[idx]));
+                break;
+            }
+        }
+
+        // ✅ PDF URL
+        idx = headerMap.get("pdf");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            dto.setPdfUrl(fields[idx]);
+        }
+
+        // ✅ Images (rozdzielone przecinkami)
+        idx = headerMap.get("images");
+        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
+            dto.setImages(List.of(fields[idx].split(",")));
+        } else {
+            dto.setImages(null);
+        }
+
+        return dto;
     }
+
 
     private Long findOrCreateBrandByBrandName(String brandname) {
         if (brandname == null || brandname.isBlank()) return null;

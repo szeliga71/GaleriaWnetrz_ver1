@@ -14,6 +14,8 @@ public class Posts {
 
     private String title;
 
+    private String coverImageUrl;
+
     @Column(columnDefinition = "TEXT",name = "content")
     private String content;
 
@@ -26,7 +28,13 @@ public class Posts {
     private List<String> images;
 
 
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
 
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
+    }
 
     public UUID getPostId() {
         return postId;

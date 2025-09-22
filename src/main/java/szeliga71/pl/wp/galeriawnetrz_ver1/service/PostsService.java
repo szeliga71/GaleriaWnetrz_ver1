@@ -44,6 +44,7 @@ public class PostsService {
         PostsDto dto = new PostsDto();
         dto.setPostId(post.getPostId());
         dto.setTitle(post.getTitle());
+        dto.setCoverImageUrl(post.getCoverImageUrl());
         dto.setContent(splitText(post.getContent(), 100));
         dto.setImages(new ArrayList<>(post.getImages()));
         return dto;
@@ -53,6 +54,7 @@ public class PostsService {
     private Posts mapToEntity(PostsDto dto) {
         Posts post = new Posts();
         post.setTitle(dto.getTitle());
+        post.setCoverImageUrl(dto.getCoverImageUrl());
         post.setContent(dto.getContent() != null ? String.join("", dto.getContent()) : null);
         post.setImages(dto.getImages());
         return post;
@@ -67,5 +69,41 @@ public class PostsService {
         return parts;
     }
 
-}
+    public void deleteAllPosts() {
+        postsRepo.deleteAll();
+    }
+
+    public void deletePostById(UUID id) {
+        postsRepo.deleteById(id);
+    }
+
+    // ------------------------ PUT ------------------------
+    @Transactional
+    public Optional<PostsDto> updatePost(UUID id, PostsDto dto) {
+        return postsRepo.findById(id).map(existing -> {
+            existing.setTitle(dto.getTitle());
+            existing.setCoverImageUrl(dto.getCoverImageUrl());
+            existing.setContent(String.join("\n", dto.getContent()));
+            existing.setImages(dto.getImages());
+            return mapToDto(postsRepo.save(existing));
+        });
+    }
+
+    // ------------------------ PATCH ------------------------
+    @Transactional
+    public Optional<PostsDto> patchPost(UUID id, PostsDto dto) {
+        return postsRepo.findById(id).map(existing -> {
+
+            if (dto.getTitle() != null) existing.setTitle(dto.getTitle());
+            if (dto.getCoverImageUrl() != null) existing.setCoverImageUrl(dto.getCoverImageUrl());
+            if (dto.getContent() != null) existing.setContent(String.join("\n", dto.getContent()));
+            if (dto.getImages() != null) existing.setImages(dto.getImages());
+
+            return mapToDto(postsRepo.save(existing));
+        });
+    }
+
+
+
+    }
 

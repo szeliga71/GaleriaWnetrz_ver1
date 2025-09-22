@@ -16,6 +16,10 @@ public class Products {
     @Column(name = "name")
     private String name;
 
+    @ManyToOne(optional = true)//fetch = FetchType.LAZY
+    @JoinColumn(name = "brand_id", nullable = true)//,insertable = false, updatable = false)
+    private Brands brand;
+
     @Column(columnDefinition = "TEXT", name = "descriptionpl")
     private String descriptionPL;
 
@@ -32,10 +36,6 @@ public class Products {
 
     @Column(name = "pdf_url")
     private String pdfUrl;
-
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "brand_id", nullable = true)//,insertable = false, updatable = false)
-    private Brands brand;
 
     @ElementCollection
     @CollectionTable(

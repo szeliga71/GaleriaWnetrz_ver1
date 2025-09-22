@@ -14,6 +14,10 @@ public class ProductDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long productId;
     private String name;
+    private String brandName;
+    @NotNull
+    @Min(1)
+    private Long brandId;
     private List<String> descriptionENG;
     private List<String> descriptionPL;
     @NotNull
@@ -23,10 +27,7 @@ public class ProductDto {
     @Min(1)
     private Long subCategoryId;
     private String pdfUrl;
-    @NotNull
-    @Min(1)
-    private Long brandId;
-    //private String brandName;
+
     private List<String> images;
     private String coverImageUrl;
 
@@ -112,6 +113,14 @@ public class ProductDto {
 
     public void setCoverImageUrl(String coverImageUrl) {
         this.coverImageUrl = coverImageUrl;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 }
 

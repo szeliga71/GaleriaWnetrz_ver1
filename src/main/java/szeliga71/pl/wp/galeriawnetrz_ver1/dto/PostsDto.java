@@ -7,6 +7,7 @@ public class PostsDto {
 
     private UUID postId;
     private String title;
+    private String coverImageUrl;
     private List<String> content;
     private List<String> images;
 
@@ -17,6 +18,14 @@ public class PostsDto {
 
     public void setPostId(UUID postId) {
         this.postId = postId;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
     }
 
     public String getTitle() {
