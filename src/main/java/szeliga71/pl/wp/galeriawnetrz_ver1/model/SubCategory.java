@@ -1,23 +1,21 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
+package szeliga71.pl.wp.galeriawnetrz_ver1.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.persistence.*;
 
-public class SubCategoriesDto {
+@Entity
+@Table(name = "sub_categories")
+public class SubCategory {
 
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long subCategoryId;
-    @NotBlank(message = "SubCategory name cannot be blank")
     private String subCategoryName;
     private String subCategoryImageUrl;
     private String slugSubCategoryName;
-    @NotNull(message = "CategoryId is required")
-    @Positive(message = "CategoryId must be greater than 0")
-    private Long categoryId;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     public Long getSubCategoryId() {
         return subCategoryId;
@@ -51,11 +49,14 @@ public class SubCategoriesDto {
         this.slugSubCategoryName = slugSubCategoryName;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
+    public Category getCategory() {
+        return category;
     }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
+    public void setCategory(Category category) {
+        this.category = category;
     }
+
 }
+
+

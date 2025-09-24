@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Products;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoriesRepo;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoryRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductsRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoriesRepo;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoryRepo;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -27,11 +27,11 @@ public class ProductService {
     @Autowired
     private ProductsRepo productsRepo;
     @Autowired
-    private CategoriesRepo categoriesRepo;
+    private CategoryRepo categoryRepo;
     @Autowired
     private BrandsRepo brandsRepo;
     @Autowired
-    private SubCategoriesRepo subCategoriesRepo;
+    private SubCategoryRepo subCategoryRepo;
 
     @PersistenceContext
     private EntityManager em;
@@ -125,11 +125,11 @@ public class ProductService {
         product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
 
         if (dto.getCategoryId() != null) {
-            categoriesRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
+            categoryRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
         }
 
         if (dto.getSubCategoryId() != null) {
-            subCategoriesRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
+            subCategoryRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
         }
         if (dto.getBrandId() != null) {
             brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
@@ -167,10 +167,10 @@ public class ProductService {
         product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
 
         if (dto.getCategoryId() != null) {
-            categoriesRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
+            categoryRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
         }
         if (dto.getSubCategoryId() != null) {
-            subCategoriesRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
+            subCategoryRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
         }
         if (dto.getBrandId() != null) {
             brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
@@ -207,22 +207,22 @@ public class ProductService {
                     ProductDto dto = parseLineWithHeaders(line, headerMap);
 
                     // 1️⃣ Sprawdź kategorię
-                    Optional<Categories> categoryOpt = categoriesRepo.findById(dto.getCategoryId());
+                    Optional<Category> categoryOpt = categoryRepo.findById(dto.getCategoryId());
                     if (categoryOpt.isEmpty()) {
-                        Categories category = new Categories();
+                        Category category = new Category();
                         category.setCategoryId(dto.getCategoryId());
                         category.setCategoryName(dto.getName());
-                        categoriesRepo.save(category);
+                        categoryRepo.save(category);
                     }
 
                     // 2️⃣ Sprawdź subkategorię
-                    Optional<SubCategories> subCategoryOpt = subCategoriesRepo.findById(dto.getSubCategoryId());
+                    Optional<SubCategory> subCategoryOpt = subCategoryRepo.findById(dto.getSubCategoryId());
                     if (subCategoryOpt.isEmpty()) {
-                        SubCategories subCategory = new SubCategories();
+                        SubCategory subCategory = new SubCategory();
                         subCategory.setSubCategoryId(dto.getSubCategoryId());
                         subCategory.setSubCategoryName(dto.getName());
                         //subCategory.setCategories(dto.getCategoryId());
-                        subCategoriesRepo.save(subCategory);
+                        subCategoryRepo.save(subCategory);
                     }
 
                     // 3️⃣ Mapowanie produktu
@@ -493,15 +493,15 @@ public class ProductService {
     private Long findOrCreateCategoryByName(String name) {
         if (name == null || name.isBlank()) return null;
 
-        return categoriesRepo.findAll().stream()
+        return categoryRepo.findAll().stream()
                 .filter(c -> c.getCategoryName().equalsIgnoreCase(name.trim()))
                 .findFirst()
                 .map(c -> c.getCategoryId())
                 .orElseGet(() -> {
                     // Tworzymy nową kategorię
-                    var newCat = new szeliga71.pl.wp.galeriawnetrz_ver1.model.Categories();
+                    var newCat = new Category();
                     newCat.setCategoryName(name.trim());
-                    categoriesRepo.save(newCat);
+                    categoryRepo.save(newCat);
                     return newCat.getCategoryId();
                 });
     }
@@ -509,7 +509,7 @@ public class ProductService {
     private Long findOrCreateSubCategoryByName(String name, Long categoryId) {
         if (name == null || name.isBlank() || categoryId == null) return null;
 
-        return subCategoriesRepo.findAll().stream()
+        return subCategoryRepo.findAll().stream()
                 .filter(sc -> sc.getSubCategoryName().equalsIgnoreCase(name.trim()) &&
                         sc.getCategory() != null &&
                         Objects.equals(sc.getCategory().getCategoryId(), categoryId))
@@ -517,12 +517,12 @@ public class ProductService {
                 .map(sc -> sc.getSubCategoryId())
                 .orElseGet(() -> {
                     // Tworzymy nową subkategorię
-                    var cat = categoriesRepo.findById(categoryId)
+                    var cat = categoryRepo.findById(categoryId)
                             .orElseThrow(() -> new RuntimeException("Category not found for subcategory"));
-                    var newSub = new szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategories();
+                    var newSub = new SubCategory();
                     newSub.setSubCategoryName(name.trim());
                     newSub.setCategory(cat);
-                    subCategoriesRepo.save(newSub);
+                    subCategoryRepo.save(newSub);
                     return newSub.getSubCategoryId();
                 });
     }

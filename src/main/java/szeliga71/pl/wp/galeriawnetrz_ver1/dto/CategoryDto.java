@@ -1,28 +1,20 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "categories")
-public class Categories {
+public class CategoryDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long categoryId;
-
     private String categoryName;
     private String categoryImageUrl;
-
-    @Column(unique = true)
     private String slugCategoryName;
+    private List<SubCategoryDto> subCategories;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonIgnore
-    private List<SubCategories> subCategories = new ArrayList<>();
 
     public Long getCategoryId() {
         return categoryId;
@@ -56,12 +48,11 @@ public class Categories {
         this.slugCategoryName = slugCategoryName;
     }
 
-    public List<SubCategories> getSubCategories() {
+    public List<SubCategoryDto> getSubCategories() {
         return subCategories;
     }
 
-    public void setSubCategories(List<SubCategories> subCategories) {
+    public void setSubCategories(List<SubCategoryDto> subCategories) {
         this.subCategories = subCategories;
     }
 }
-

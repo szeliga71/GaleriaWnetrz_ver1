@@ -1,15 +1,28 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
-
-public class BrandUpdateDto {
-
+public class BrandCreateDto {
     private String brandName;
     private String brandImageUrl;
-    private String brandDescriptionPL;
-    private String brandDescriptionENG;
+    private String brandDescriptionPL; // zwykły string
+    private String brandDescriptionENG; // zwykły string
     private String brandUrl;
     private String slugName;
 
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public String getBrandImageUrl() {
+        return brandImageUrl;
+    }
+
+    public void setBrandImageUrl(String brandImageUrl) {
+        this.brandImageUrl = brandImageUrl;
+    }
 
     public String getBrandDescriptionPL() {
         return brandDescriptionPL;
@@ -27,12 +40,12 @@ public class BrandUpdateDto {
         this.brandDescriptionENG = brandDescriptionENG;
     }
 
-    public String getBrandName() {
-        return brandName;
+    public String getBrandUrl() {
+        return brandUrl;
     }
 
-    public void setBrandName(String brandName) {
-        this.brandName = brandName;
+    public void setBrandUrl(String brandUrl) {
+        this.brandUrl = brandUrl;
     }
 
     public String getSlugName() {
@@ -42,22 +55,5 @@ public class BrandUpdateDto {
     public void setSlugName(String slugName) {
         this.slugName = slugName;
     }
-
-    public String getBrandUrl() {
-        return brandUrl;
-    }
-
-    public void setBrandUrl(String brandUrl) {
-        this.brandUrl = brandUrl;
-    }
-
-
-
-    public String getBrandImageUrl() {
-        return brandImageUrl;
-    }
-
-    public void setBrandImageUrl(String brandImageUrl) {
-        this.brandImageUrl = brandImageUrl;
-    }
 }
+

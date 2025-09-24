@@ -5,20 +5,20 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
+
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 
 import java.util.Optional;
 
 @Repository
-public interface BrandsRepo extends JpaRepository<Brands, Long> {
-    Optional<Brands> findByBrandName(String brandName);
+public interface CategoryRepo extends JpaRepository<Category, Long> {
 
-    Optional<Brands> findByBrandNameIgnoreCase(String brandName);
+    boolean existsBySlugCategoryName(String slugCategoryName);
+
+    Optional<Category> findByCategoryNameIgnoreCase(String categoryName);
 
     @Modifying
     @Transactional
-    @Query(value = "TRUNCATE TABLE brands RESTART IDENTITY CASCADE", nativeQuery = true)
-    void truncateBrands();
-
-
+    @Query(value = "TRUNCATE TABLE categories RESTART IDENTITY CASCADE", nativeQuery = true)
+    void truncateCategories();
 }

@@ -16,17 +16,17 @@ import java.util.Optional;
 public class AdminController {
 
     private final BrandService brandService;
-    private final CategorieService categorieService;
+    private final CategoryService categoryService;
     private final ProductService productService;
-    private final SubCategoriesService subCategoriesService;
+    private final SubCategoryService subCategoryService;
     private final PostsService postsService;
 
     @Autowired
-    public AdminController(BrandService brandService, CategorieService categorieService, ProductService productService, SubCategoriesService subCategoriesService, PostsService postsService) {
+    public AdminController(BrandService brandService, CategoryService categoryService, ProductService productService, SubCategoryService subCategoryService, PostsService postsService) {
         this.brandService = brandService;
-        this.categorieService = categorieService;
+        this.categoryService = categoryService;
         this.productService = productService;
-        this.subCategoriesService = subCategoriesService;
+        this.subCategoryService = subCategoryService;
         this.postsService = postsService;
     }
 
@@ -36,24 +36,26 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
     }
 
-    @PostMapping("/brand")
-    public ResponseEntity<BrandDto> createProduct(@RequestBody BrandDto brandDto) {
-        BrandDto savedBrand = brandService.saveBrand(brandDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedBrand);
-    }
+
+ //=================================BRANDS===========================================
+   @PostMapping("/brand")
+   public ResponseEntity<BrandDto> createBrand(@RequestBody BrandCreateDto dto) {
+       BrandDto saved = brandService.createBrandFromDto(dto);
+       return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+   }
+
 
     @PutMapping("/brand/{id}")
     public ResponseEntity<BrandDto> updateBrand(
             @PathVariable Long id,
-            @RequestBody BrandDto dto) {
+            @RequestBody BrandUpdateDto dto) {
 
-        Optional<BrandDto> existing = brandService.getBrandById(id);
-        if (existing.isEmpty()) {
+        try {
+            BrandDto updated = brandService.updateBrand(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        dto.setBrandId(id);
-        BrandDto updated = brandService.saveBrand(dto);
-        return ResponseEntity.ok(updated);
     }
 
     @PatchMapping("/brand/{id}")
@@ -61,41 +63,54 @@ public class AdminController {
             @PathVariable Long id,
             @RequestBody BrandUpdateDto updates) {
 
-        Optional<BrandDto> existingOpt = brandService.getBrandById(id);
-        if (existingOpt.isEmpty()) {
+        return brandService.patchBrand(id, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/brand/by-name/{brandName}")
+    public ResponseEntity<BrandDto> updateBrandByName(
+            @PathVariable String brandName,
+            @RequestBody BrandUpdateDto dto) {
+        try {
+            BrandDto updated = brandService.updateBrandByName(brandName, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        BrandDto existing = existingOpt.get();
-
-        if (updates.getBrandName() != null) existing.setBrandName(updates.getBrandName());
-        if (updates.getBrandUrl() != null) existing.setBrandUrl(updates.getBrandUrl());
-        if (updates.getBrandDescriptionENG() != null) existing.setBrandDescriptionENG(updates.getBrandDescriptionENG());
-        if (updates.getBrandDescriptionPL() != null) existing.setBrandDescriptionPL(updates.getBrandDescriptionPL());
-        if (updates.getBrandImageUrl() != null) existing.setBrandImageUrl(updates.getBrandImageUrl());
-
-        existing.setBrandId(id);
-
-        BrandDto updated = brandService.saveBrand(existing);
-        return ResponseEntity.ok(updated);
     }
 
-    @PostMapping("/category")
-    public ResponseEntity<CategoriesDto> createCategory(@RequestBody CategoriesDto categoryDto) {
-        CategoriesDto savedCategory = categorieService.saveCategory(categoryDto);
-        return ResponseEntity.ok(savedCategory);
+    @PatchMapping("/brand/by-name/{brandName}")
+    public ResponseEntity<BrandDto> patchBrandByName(
+            @PathVariable String brandName,
+            @RequestBody BrandUpdateDto updates) {
+        return brandService.patchBrandByName(brandName, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
-
-
-    @PostMapping("/subcategory")
-    public ResponseEntity<SubCategoriesDto> createSubCategory(@RequestBody SubCategoriesDto dto) {
-        // Walidacja categoryId - upewniamy się, że nie jest null ani 0
-        if (dto.getCategoryId() == null || dto.getCategoryId() == 0) {
-            throw new RuntimeException("categoryId must be provided and greater than 0");
+    @DeleteMapping("/brands/reset")
+    public ResponseEntity<Void> deleteAllBrandsAndReset() {
+        brandService.deleteAllAndReset();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+    @DeleteMapping("/brand/{id}")
+    public ResponseEntity<Void> deleteBrand(@PathVariable Long id) {
+        brandService.deleteBrand(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/brand/by-name/{brandName}")
+    public ResponseEntity<Void> deleteBrandByName(@PathVariable String brandName) {
+        try {
+            brandService.deleteBrandByName(brandName);
+            return ResponseEntity.noContent().build(); // HTTP 204
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         }
-
-        SubCategoriesDto saved = subCategoriesService.saveSubCategory(dto);
-        return ResponseEntity.ok(saved);
     }
+
+
+
+
 
     @PutMapping("/product/{id}")
     public ResponseEntity<ProductDto> updateProduct(
@@ -166,39 +181,103 @@ public class AdminController {
         return ResponseEntity.ok("Imported " + count + " products");
     }
 
+
+    //================================CATEGORIES================================================
+
+    @PostMapping("/category")
+    public ResponseEntity<CategoryDto> createCategory(@RequestBody CategoryDto categoryDto) {
+        CategoryDto savedCategory = categoryService.saveCategory(categoryDto);
+        return ResponseEntity.ok(savedCategory);
+    }
     @DeleteMapping("/category/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        categorieService.deleteCategory(id);
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+    @DeleteMapping("/category/categoryName/{categoryName}")
+    public ResponseEntity<Void> deleteCategoryByName(@PathVariable String categoryName) {
+        categoryService.deleteCategoryByCategoryName(categoryName);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
 
-    @DeleteMapping("/categories")
-    public ResponseEntity<Void> deleteAllCategories() {
-        categorieService.deleteAllCategories();
+    @DeleteMapping("/category/reset")
+    public ResponseEntity<Void> deleteAllCategoryReset() {
+        categoryService.deleteAllAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
+
+
+
+    @PutMapping("/category/{id}")
+    public ResponseEntity<CategoryDto> updateCategory(
+            @PathVariable Long id,
+            @RequestBody CategoryDto dto) {
+
+        try {
+            CategoryDto updated = categoryService.updateCategory(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/category/{id}")
+    public ResponseEntity<Object> patchCategories(
+            @PathVariable Long id,
+            @RequestBody CategoryDto updates) {
+
+        return categoryService.patchCategory(id, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/category/by-name/{categoryName}")
+    public ResponseEntity<CategoryDto> updateCategoryByName(
+            @PathVariable String categoryName,
+            @RequestBody CategoryDto dto) {
+        try {
+
+            CategoryDto updated = categoryService.updateCategoryByName(categoryName, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/category/by-name/{categoryName}")
+    public ResponseEntity<CategoryDto> patchCategoryByName(
+            @PathVariable String categoryName,
+            @RequestBody CategoryDto updates) {
+        return categoryService.patchCategoryByName(categoryName, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+
+//========================SUBCATEGORY===========================================
 
     @DeleteMapping("/subCategory/{id}")
     public ResponseEntity<Void> deleteSubCategory(@PathVariable Long id) {
-        subCategoriesService.deleteSubCategory(id);
+        subCategoryService.deleteSubCategory(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-
-    @DeleteMapping("/subCategories")
-    public ResponseEntity<Void> deleteAllSubCategories() {
-        subCategoriesService.deleteAllSubCategories();
+    @DeleteMapping("/subCategory/reset")
+    public ResponseEntity<Void> deleteAllSubCategoryReset() {
+        subCategoryService.deleteAllSubCategoryAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
 
-    @DeleteMapping("/brand/{id}")
-    public ResponseEntity<Void> deleteBrand(@PathVariable Long id) {
-        brandService.deleteBrand(id);
-        return ResponseEntity.noContent().build(); // zwraca status 204
+
+    @PostMapping("/subcategory")
+    public ResponseEntity<SubCategoryDto> createSubCategory(@RequestBody SubCategoryDto dto) {
+        // Walidacja categoryId - upewniamy się, że nie jest null ani 0
+        if (dto.getCategoryId() == null || dto.getCategoryId() == 0) {
+            throw new RuntimeException("categoryId must be provided and greater than 0");
+        }
+
+        SubCategoryDto saved = subCategoryService.saveSubCategory(dto);
+        return ResponseEntity.ok(saved);
     }
 
-    @DeleteMapping("/brands")
-    public ResponseEntity<Void> deleteAllBrands() {
-        brandService.deleteAllBrands();
-        return ResponseEntity.noContent().build(); // HTTP 204
-    }
+
 }

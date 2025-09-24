@@ -28,11 +28,11 @@ public class Products {
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "category_id", nullable = true)
-    private Categories category;
+    private Category category;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "sub_category_id", nullable = true)
-    private SubCategories subCategory;
+    private SubCategory subCategory;
 
     @Column(name = "pdf_url")
     private String pdfUrl;
@@ -77,19 +77,19 @@ public class Products {
         this.descriptionENG = descriptionENG;
     }
 
-    public Categories getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(Categories category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
-    public SubCategories getSubCategory() {
+    public SubCategory getSubCategory() {
         return subCategory;
     }
 
-    public void setSubCategory(SubCategories subCategory) {
+    public void setSubCategory(SubCategory subCategory) {
         this.subCategory = subCategory;
     }
 
