@@ -102,11 +102,11 @@ public class CategoryService {
     }
 
     @Transactional
-    public Optional<Object> patchCategory(Long id, CategoryDto updates) {
+    public Optional<CategoryDto> patchCategory(Long id, CategoryDto updates) {
         return categoryRepo.findById(id).map(existing -> {
             if (updates.getCategoryName() != null) existing.setCategoryName(updates.getCategoryName());
             if (updates.getCategoryImageUrl() != null) existing.setCategoryImageUrl(updates.getCategoryImageUrl());
-            existing.setSlugCategoryName(updates.getSlugCategoryName());
+            if(updates.getSlugCategoryName() !=null) existing.setSlugCategoryName(updates.getSlugCategoryName());
             Category saved = categoryRepo.save(existing);
             return mapToDto(saved);
         });
@@ -117,10 +117,19 @@ public class CategoryService {
         Category existing = categoryRepo.findByCategoryNameIgnoreCase(categoryName)
                 .orElse(null);
 
-        if(dto.getCategoryName() !=null ) existing.setCategoryName(dto.getCategoryName());
-        if(dto.getCategoryImageUrl()!=null)existing.setCategoryImageUrl(dto.getCategoryImageUrl());
-        existing.setSlugCategoryName(dto.getSlugCategoryName());
-        Category saved = categoryRepo.save(existing);
+        if(dto.getCategoryName() !=null ) if (existing != null) {
+            existing.setCategoryName(dto.getCategoryName());
+        }
+        if(dto.getCategoryImageUrl()!=null) if (existing != null) {
+            existing.setCategoryImageUrl(dto.getCategoryImageUrl());
+        }
+        if (existing != null) {
+            existing.setSlugCategoryName(dto.getSlugCategoryName());
+        }
+        Category saved = null;
+        if (existing != null) {
+            saved = categoryRepo.save(existing);
+        }
         return mapToDto(saved);
     }
     @Transactional
@@ -128,7 +137,7 @@ public class CategoryService {
         return categoryRepo.findByCategoryNameIgnoreCase(categoryName).map(existing -> {
             if (updates.getCategoryName() != null) existing.setCategoryName(updates.getCategoryName());
             if (updates.getCategoryImageUrl() != null) existing.setCategoryImageUrl(updates.getCategoryImageUrl());
-            existing.setSlugCategoryName(updates.getSlugCategoryName());
+            if(updates.getSlugCategoryName() !=null) existing.setSlugCategoryName(updates.getSlugCategoryName());
             Category saved = categoryRepo.save(existing);
             return mapToDto(saved);
         });
@@ -139,8 +148,10 @@ public class CategoryService {
     public void deleteCategoryByCategoryName(String categoryName) {
         Category existing = categoryRepo.findByCategoryNameIgnoreCase(categoryName)
                 .orElse(null);
+    if (existing != null) {
         categoryRepo.delete(existing);
     }
+}
 
 
 }

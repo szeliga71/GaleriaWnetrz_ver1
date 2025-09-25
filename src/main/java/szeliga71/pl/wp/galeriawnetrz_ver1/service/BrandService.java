@@ -103,14 +103,14 @@ public class BrandService {
     @Transactional
     public BrandDto updateBrand(Long id, BrandUpdateDto dto) {
         Brands existing = brandsRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Brand not found"));
+                .orElse(null);
 
         existing.setBrandName(dto.getBrandName());
         existing.setBrandUrl(dto.getBrandUrl());
         existing.setBrandImageUrl(dto.getBrandImageUrl());
         existing.setBrandDescriptionENG(dto.getBrandDescriptionENG() != null ? String.join("", dto.getBrandDescriptionENG()) : null);
         existing.setBrandDescriptionPL(dto.getBrandDescriptionPL() != null ? String.join("", dto.getBrandDescriptionPL()) : null);
-        existing.setSlugName(generateSlug(dto.getBrandName()));
+        existing.setSlugName(dto.getSlugName());
 
         Brands saved = brandsRepo.save(existing);
         return mapToDto(saved);
@@ -141,7 +141,7 @@ public class BrandService {
         if (dto.getBrandImageUrl() != null) existing.setBrandImageUrl(dto.getBrandImageUrl());
         if (dto.getBrandDescriptionENG() != null) existing.setBrandDescriptionENG(String.join("", dto.getBrandDescriptionENG()));
         if (dto.getBrandDescriptionPL() != null) existing.setBrandDescriptionPL(String.join("", dto.getBrandDescriptionPL()));
-        existing.setSlugName(generateSlug(existing.getBrandName()));
+        if(dto.getSlugName()!=null) existing.setSlugName(dto.getSlugName());
 
         Brands saved = brandsRepo.save(existing);
         return mapToDto(saved);

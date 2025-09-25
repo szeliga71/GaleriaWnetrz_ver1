@@ -30,10 +30,81 @@ public class AdminController {
         this.postsService = postsService;
     }
 
+
+    //================================PRODUCT=============================================
+
     @PostMapping("/product")
     public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto) {
         ProductDto savedProduct = productService.saveProduct(productDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
+    }
+    @PutMapping("/product/{id}")
+    public ResponseEntity<ProductDto> updateProduct(
+            @PathVariable Long id,
+            @RequestBody ProductDto dto) {
+
+        Optional<ProductDto> existing = productService.getProductById(id);
+        if (existing.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        dto.setProductId(id);
+        ProductDto updated = productService.saveProduct(dto);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/product/{id}")
+    public ResponseEntity<ProductDto> patchProduct(
+            @PathVariable Long id,
+            @RequestBody ProductUpdateDto updates) {
+
+        Optional<ProductDto> existingOpt = productService.getProductById(id);
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ProductDto existing = existingOpt.get();
+
+        if (updates.getName() != null) existing.setName(updates.getName());
+        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
+        if (updates.getBrandId() != null) existing.setBrandId(updates.getBrandId());
+        if (updates.getCategoryId() != null) existing.setCategoryId(updates.getCategoryId());
+        if (updates.getSubCategoryId() != null) existing.setSubCategoryId(updates.getSubCategoryId());
+        if (updates.getDescriptionENG() != null) existing.setDescriptionENG(updates.getDescriptionENG());
+        if (updates.getDescriptionPL() != null) existing.setDescriptionPL(updates.getDescriptionPL());
+        if (updates.getImages() != null) existing.setImages(updates.getImages());
+
+        existing.setProductId(id);
+
+        ProductDto updated = productService.saveProduct(existing);
+        return ResponseEntity.ok(updated);
+    }
+
+
+    @DeleteMapping("/product/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
+
+    @DeleteMapping("/products")
+    public ResponseEntity<Void> deleteAllProducts() {
+        productService.deleteAllProducts();
+        return ResponseEntity.noContent().build(); // HTTP 204
+    }
+
+    @PostMapping(
+            value = "/import/products",
+            consumes = {"multipart/form-data"}
+    )
+
+    public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+
+        int count = productService.importProductsFromCsv(file);
+        return ResponseEntity.ok("Imported " + count + " products");
     }
 
 
@@ -109,79 +180,6 @@ public class AdminController {
     }
 
 
-
-
-
-    @PutMapping("/product/{id}")
-    public ResponseEntity<ProductDto> updateProduct(
-            @PathVariable Long id,
-            @RequestBody ProductDto dto) {
-
-        Optional<ProductDto> existing = productService.getProductById(id);
-        if (existing.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        dto.setProductId(id);
-        ProductDto updated = productService.saveProduct(dto);
-        return ResponseEntity.ok(updated);
-    }
-
-    @PatchMapping("/product/{id}")
-    public ResponseEntity<ProductDto> patchProduct(
-            @PathVariable Long id,
-            @RequestBody ProductUpdateDto updates) {
-
-        Optional<ProductDto> existingOpt = productService.getProductById(id);
-        if (existingOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        ProductDto existing = existingOpt.get();
-
-        if (updates.getName() != null) existing.setName(updates.getName());
-        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
-        if (updates.getBrandId() != null) existing.setBrandId(updates.getBrandId());
-        if (updates.getCategoryId() != null) existing.setCategoryId(updates.getCategoryId());
-        if (updates.getSubCategoryId() != null) existing.setSubCategoryId(updates.getSubCategoryId());
-        if (updates.getDescriptionENG() != null) existing.setDescriptionENG(updates.getDescriptionENG());
-        if (updates.getDescriptionPL() != null) existing.setDescriptionPL(updates.getDescriptionPL());
-        if (updates.getImages() != null) existing.setImages(updates.getImages());
-
-        existing.setProductId(id);
-
-        ProductDto updated = productService.saveProduct(existing);
-        return ResponseEntity.ok(updated);
-    }
-
-
-    @DeleteMapping("/product/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.noContent().build(); // zwraca status 204
-    }
-
-    @DeleteMapping("/products")
-    public ResponseEntity<Void> deleteAllProducts() {
-        productService.deleteAllProducts();
-        return ResponseEntity.noContent().build(); // HTTP 204
-    }
-
-    @PostMapping(
-            value = "/import/products",
-            consumes = {"multipart/form-data"}
-    )
-
-    public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
-        }
-
-        int count = productService.importProductsFromCsv(file);
-        return ResponseEntity.ok("Imported " + count + " products");
-    }
-
-
     //================================CATEGORIES================================================
 
     @PostMapping("/category")
@@ -194,7 +192,7 @@ public class AdminController {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-    @DeleteMapping("/category/categoryName/{categoryName}")
+    @DeleteMapping("/category/by-name/{categoryName}")
     public ResponseEntity<Void> deleteCategoryByName(@PathVariable String categoryName) {
         categoryService.deleteCategoryByCategoryName(categoryName);
         return ResponseEntity.noContent().build(); // zwraca status 204
@@ -222,7 +220,7 @@ public class AdminController {
     }
 
     @PatchMapping("/category/{id}")
-    public ResponseEntity<Object> patchCategories(
+    public ResponseEntity<CategoryDto> patchCategories(
             @PathVariable Long id,
             @RequestBody CategoryDto updates) {
 
@@ -266,17 +264,68 @@ public class AdminController {
         subCategoryService.deleteAllSubCategoryAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
+    @DeleteMapping("/subCategory/by-name/{subCategoryName}")
+    public ResponseEntity<Void> deleteSubCategoryByName(@PathVariable String subCategoryName) {
+        subCategoryService.deleteSubCategoryBySubCategoryName(subCategoryName);
+        return ResponseEntity.noContent().build(); // zwraca status 204
+    }
 
 
     @PostMapping("/subcategory")
     public ResponseEntity<SubCategoryDto> createSubCategory(@RequestBody SubCategoryDto dto) {
         // Walidacja categoryId - upewniamy się, że nie jest null ani 0
         if (dto.getCategoryId() == null || dto.getCategoryId() == 0) {
-            throw new RuntimeException("categoryId must be provided and greater than 0");
+            throw new RuntimeException("CategoryId must be provided and greater than 0");
         }
 
         SubCategoryDto saved = subCategoryService.saveSubCategory(dto);
         return ResponseEntity.ok(saved);
+    }
+
+
+    @PutMapping("/subCategory/{id}")
+    public ResponseEntity<SubCategoryDto> updateSubCategory(
+            @PathVariable Long id,
+            @RequestBody SubCategoryDto dto) {
+
+        try {
+            SubCategoryDto updated = subCategoryService.updateSubCategory(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/subCategory/{id}")
+    public ResponseEntity<SubCategoryDto> patchSubCategories(
+            @PathVariable Long id,
+            @RequestBody SubCategoryDto updates) {
+
+        return subCategoryService.patchSubCategory(id, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/subCategory/by-name/{subCategoryName}")
+    public ResponseEntity<SubCategoryDto> updateSubCategoryByName(
+            @PathVariable String subCategoryName,
+            @RequestBody SubCategoryDto dto) {
+        try {
+
+            SubCategoryDto updated = subCategoryService.updateSubCategoryByName(subCategoryName, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/subCategory/by-name/{subCategoryName}")
+    public ResponseEntity<SubCategoryDto> patchSubCategoryByName(
+            @PathVariable String subCategoryName,
+            @RequestBody SubCategoryDto updates) {
+        return subCategoryService.patchSubCategoryByName(subCategoryName, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 

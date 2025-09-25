@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CreateSubCategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
 
@@ -23,6 +24,6 @@ public interface SubCategoryRepo extends JpaRepository<SubCategory, Long> {
     @Query(value = "TRUNCATE TABLE sub_categories RESTART IDENTITY CASCADE", nativeQuery = true)
     void truncateSubCategory();
 
-
 }
+
 

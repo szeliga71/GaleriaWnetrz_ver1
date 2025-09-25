@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoryDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoryRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.service.SubCategoryService;
@@ -28,7 +29,7 @@ public class SubCategoryController {
     }
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public Optional<SubCategory> getSubCategoryById(@PathVariable Long id) {
         return subCategoryRepo.findById(id);
     }
@@ -48,6 +49,11 @@ public class SubCategoryController {
                 })
                 .toList();
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/by-name/{subCategoryName}")
+    public Optional<SubCategory> getSubCategoryByName(@PathVariable String subCategoryName) {
+        return subCategoryService.getSubCategoryByName(subCategoryName);
     }
 
 }
