@@ -3,6 +3,7 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
@@ -34,26 +35,28 @@ public class SubCategoryController {
         return subCategoryRepo.findById(id);
     }
 
-    @GetMapping("/subcategory")
-    public ResponseEntity<List<SubCategoryDto>> getAllSubCategories() {
-        List<SubCategoryDto> list = subCategoryService.getAllSubCategory()
-                .stream()
-                .map(s -> {
-                    SubCategoryDto dto = new SubCategoryDto();
-                    dto.setSubCategoryId(s.getSubCategoryId());
-                    dto.setSubCategoryName(s.getSubCategoryName());
-                    dto.setSubCategoryImageUrl(s.getSubCategoryImageUrl());
-                    dto.setSlugSubCategoryName(s.getSlugSubCategoryName());
-                    dto.setCategoryId(s.getCategory().getCategoryId());
-                    return dto;
-                })
-                .toList();
-        return ResponseEntity.ok(list);
-    }
 
+    @GetMapping("/all")
+    public List<SubCategory> getAllSubCategory() {
+        return subCategoryRepo.findAll();
+    }
     @GetMapping("/by-name/{subCategoryName}")
     public Optional<SubCategory> getSubCategoryByName(@PathVariable String subCategoryName) {
-        return subCategoryService.getSubCategoryByName(subCategoryName);
+        return subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName);
+    }
+
+    @GetMapping("/category/by-subCategoryName/{subCategoryName}")
+        public Optional<Category>getCategoryBySubCategoryName(@PathVariable String subCategoryName){
+        return subCategoryService.getCategoryBySubCategoryName(subCategoryName);
+    }
+
+    @GetMapping("/subCategory/by-categoryName/{categoryName}")
+    public List<SubCategory>getSubCategoryByCategoryName(@PathVariable String categoryName){
+        return subCategoryService.getSubCategoryByCategoryName(categoryName);
+    }
+    @GetMapping("/subCategory/by-categoryId/{categoryId}")
+    public List<SubCategory>getSubCategoryByCategoryId(@PathVariable Long categoryId){
+        return subCategoryService.getSubCategoryByCategoryId(categoryId);
     }
 
 }

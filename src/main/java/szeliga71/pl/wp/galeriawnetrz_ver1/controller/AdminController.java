@@ -53,31 +53,35 @@ public class AdminController {
         return ResponseEntity.ok(updated);
     }
 
-    @PatchMapping("/product/{id}")
+
+    @PatchMapping("/productId/{id}")
     public ResponseEntity<ProductDto> patchProduct(
             @PathVariable Long id,
-            @RequestBody ProductUpdateDto updates) {
+            @RequestBody ProductDto updates) {
 
-        Optional<ProductDto> existingOpt = productService.getProductById(id);
-        if (existingOpt.isEmpty()) {
+        return productService.patchProduct(id, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    @PutMapping("/product/by-name/{productName}")
+    public ResponseEntity<ProductDto> updateProductByName(
+            @PathVariable String productName,
+            @RequestBody ProductDto dto) {
+        try {
+            ProductDto updated = productService.updateProductByName(productName, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
+    }
 
-        ProductDto existing = existingOpt.get();
-
-        if (updates.getName() != null) existing.setName(updates.getName());
-        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
-        if (updates.getBrandId() != null) existing.setBrandId(updates.getBrandId());
-        if (updates.getCategoryId() != null) existing.setCategoryId(updates.getCategoryId());
-        if (updates.getSubCategoryId() != null) existing.setSubCategoryId(updates.getSubCategoryId());
-        if (updates.getDescriptionENG() != null) existing.setDescriptionENG(updates.getDescriptionENG());
-        if (updates.getDescriptionPL() != null) existing.setDescriptionPL(updates.getDescriptionPL());
-        if (updates.getImages() != null) existing.setImages(updates.getImages());
-
-        existing.setProductId(id);
-
-        ProductDto updated = productService.saveProduct(existing);
-        return ResponseEntity.ok(updated);
+    @PatchMapping("/product/by-name/{productName}")
+    public ResponseEntity<ProductDto> patchProductByName(
+            @PathVariable String productName,
+            @RequestBody ProductDto updates) {
+        return productService.patchProductByName(productName, updates)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 
@@ -86,26 +90,21 @@ public class AdminController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-
-    @DeleteMapping("/products")
-    public ResponseEntity<Void> deleteAllProducts() {
-        productService.deleteAllProducts();
+    @DeleteMapping("/product/by-name/{productName}")
+    public ResponseEntity<Void> deleteProductByName(@PathVariable String productName) {
+        try {
+            productService.deleteProductByName(productName);
+            return ResponseEntity.noContent().build(); // HTTP 204
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    @DeleteMapping("/products/reset")
+    public ResponseEntity<Void> deleteAllProductsAndReset() {
+        productService.deleteAllAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
 
-    @PostMapping(
-            value = "/import/products",
-            consumes = {"multipart/form-data"}
-    )
-
-    public ResponseEntity<String> importProducts(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
-        }
-
-        int count = productService.importProductsFromCsv(file);
-        return ResponseEntity.ok("Imported " + count + " products");
-    }
 
 
  //=================================BRANDS===========================================
@@ -119,7 +118,7 @@ public class AdminController {
     @PutMapping("/brand/{id}")
     public ResponseEntity<BrandDto> updateBrand(
             @PathVariable Long id,
-            @RequestBody BrandUpdateDto dto) {
+            @RequestBody BrandCreateDto dto) {
 
         try {
             BrandDto updated = brandService.updateBrand(id, dto);
@@ -132,7 +131,7 @@ public class AdminController {
     @PatchMapping("/brand/{id}")
     public ResponseEntity<BrandDto> patchBrand(
             @PathVariable Long id,
-            @RequestBody BrandUpdateDto updates) {
+            @RequestBody BrandCreateDto updates) {
 
         return brandService.patchBrand(id, updates)
                 .map(ResponseEntity::ok)
@@ -142,7 +141,7 @@ public class AdminController {
     @PutMapping("/brand/by-name/{brandName}")
     public ResponseEntity<BrandDto> updateBrandByName(
             @PathVariable String brandName,
-            @RequestBody BrandUpdateDto dto) {
+            @RequestBody BrandCreateDto dto) {
         try {
             BrandDto updated = brandService.updateBrandByName(brandName, dto);
             return ResponseEntity.ok(updated);
@@ -154,7 +153,7 @@ public class AdminController {
     @PatchMapping("/brand/by-name/{brandName}")
     public ResponseEntity<BrandDto> patchBrandByName(
             @PathVariable String brandName,
-            @RequestBody BrandUpdateDto updates) {
+            @RequestBody BrandCreateDto updates) {
         return brandService.patchBrandByName(brandName, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -203,7 +202,6 @@ public class AdminController {
         categoryService.deleteAllAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
-
 
 
     @PutMapping("/category/{id}")

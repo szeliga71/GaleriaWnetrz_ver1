@@ -5,9 +5,9 @@ import java.util.List;
 public class ProductUpdateDto {
     private String name;
     private String pdfUrl;
-    private Long brandId;
-    private Long categoryId;
-    private Long subCategoryId;
+    private String brandName;
+    private String categoryName;
+    private String subCategoryName;
     private List<String> descriptionENG;
     private List<String> descriptionPL;
     private List<String> images;
@@ -20,44 +20,12 @@ public class ProductUpdateDto {
         this.name = name;
     }
 
-    public String getPdfUrl() {
-        return pdfUrl;
+    public List<String> getImages() {
+        return images;
     }
 
-    public void setPdfUrl(String pdfUrl) {
-        this.pdfUrl = pdfUrl;
-    }
-
-    public Long getBrandId() {
-        return brandId;
-    }
-
-    public void setBrandId(Long brandId) {
-        this.brandId = brandId;
-    }
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public Long getSubCategoryId() {
-        return subCategoryId;
-    }
-
-    public void setSubCategoryId(Long subCategoryId) {
-        this.subCategoryId = subCategoryId;
-    }
-
-    public List<String> getDescriptionENG() {
-        return descriptionENG;
-    }
-
-    public void setDescriptionENG(List<String> descriptionENG) {
-        this.descriptionENG = descriptionENG;
+    public void setImages(List<String> images) {
+        this.images = images;
     }
 
     public List<String> getDescriptionPL() {
@@ -68,11 +36,43 @@ public class ProductUpdateDto {
         this.descriptionPL = descriptionPL;
     }
 
-    public List<String> getImages() {
-        return images;
+    public List<String> getDescriptionENG() {
+        return descriptionENG;
     }
 
-    public void setImages(List<String> images) {
-        this.images = images;
+    public void setDescriptionENG(List<String> descriptionENG) {
+        this.descriptionENG = descriptionENG;
+    }
+
+    public String getSubCategoryName() {
+        return subCategoryName;
+    }
+
+    public void setSubCategoryName(String subCategoryName) {
+        this.subCategoryName = subCategoryName;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
     }
 }

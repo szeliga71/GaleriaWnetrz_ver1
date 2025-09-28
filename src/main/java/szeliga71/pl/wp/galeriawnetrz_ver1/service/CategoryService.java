@@ -1,6 +1,7 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
@@ -14,29 +15,20 @@ import java.util.Optional;
 @Transactional
 public class CategoryService {
 
-    private final CategoryRepo categoryRepo;
+    @Autowired
+   CategoryRepo categoryRepo;
 
-    public CategoryService(CategoryRepo categoryRepo) {
+   /* public CategoryService(CategoryRepo categoryRepo) {
         this.categoryRepo = categoryRepo;
-    }
+    }*/
 
     public Optional<Category> getCategoryByName(String categoryName){
         return categoryRepo.findByCategoryNameIgnoreCase(categoryName);
     }
 
 
-    public List<CategoryDto> getAllCategories() {
-        return categoryRepo.findAll()
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    @Transactional
     public Category getCategoryById(Long id) {
-        //return categoriesRepo.findById(id)
         return categoryRepo.findById(id).orElse(null);
-                //.orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
     public CategoryDto saveCategory(CategoryDto dto) {

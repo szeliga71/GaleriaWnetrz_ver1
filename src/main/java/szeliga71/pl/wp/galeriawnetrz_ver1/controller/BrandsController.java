@@ -24,21 +24,29 @@ public class BrandsController {
         this.brandService = brandService;
     }
 
-    @GetMapping
-    public List<Brands> getAllBrands() {
-        return brandsRepo.findAll();
+
+    // 🔹 GET po ID
+    @GetMapping("/id/{id}")
+    public ResponseEntity<BrandDto> getBrandById(@PathVariable Long id) {
+        return brandService.getBrandById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}")
-    public Optional<Brands> getBrandById(@PathVariable Long id) {
-        return brandsRepo.findById(id);
+    // 🔹 GET wszystkie
+    @GetMapping("/all")
+    public ResponseEntity<List<BrandDto>> getAllBrands() {
+        List<BrandDto> brands = brandService.getAllBrands();
+        return ResponseEntity.ok(brands);
     }
     @GetMapping("/brand/by-name/{brandName}")
-    public Optional<Brands> getBrandByName(@PathVariable String brandName) {
-        return brandService.getBrandByName(brandName);
-          //      .map(ResponseEntity::ok)
-            //    .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<BrandDto> getBrandByName(@PathVariable String brandName) {
+        return brandService.getBrandByName(brandName)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+
 }
 
 

@@ -8,15 +8,17 @@ public class Brands {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long brandId;
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT",unique = true)
     private String brandName;
+    @Column(columnDefinition = "TEXT")
     private String brandImageUrl;
     @Column(columnDefinition = "TEXT")
     private String brandDescriptionPL;
     @Column(columnDefinition = "TEXT")
     private String brandDescriptionENG;
+    @Column(columnDefinition = "TEXT")
     private String brandUrl;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String slugName;
 
     public Long getBrandId() {

@@ -1,23 +1,27 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
+
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoryDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Products;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Product;
+
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoryRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductsRepo;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductRepo;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoryRepo;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+
 import java.util.*;
 
 @Service
@@ -25,7 +29,7 @@ import java.util.*;
 public class ProductService {
 
     @Autowired
-    private ProductsRepo productsRepo;
+    private ProductRepo productRepo;
     @Autowired
     private CategoryRepo categoryRepo;
     @Autowired
@@ -36,68 +40,39 @@ public class ProductService {
     @PersistenceContext
     private EntityManager em;
 
-    public ProductService(ProductsRepo productsRepo) {
-        this.productsRepo = productsRepo;
-    }
+    @Autowired
+    private SubCategoryService subCategoryService;
 
     public List<ProductDto> getAllProducts() {
-        return productsRepo.findAll()
-                .stream()
-                .map(this::mapToDto)
-                .toList();
+        return productRepo.findAll().stream().map(this::mapToDto).toList();
     }
 
     public Optional<ProductDto> getProductById(Long productId) {
-        return productsRepo.findById(productId)
-                .map(this::mapToDto);
+        return productRepo.findById(productId).map(this::mapToDto);
     }
 
-
-    public List<ProductDto> getProductsByCategory(Long categoryId) {
-        return productsRepo.findByCategory_CategoryId(categoryId)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    public List<ProductDto> getProductsByBrandId(Long brandId) {
-        return productsRepo.findByBrand_BrandId(brandId)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-
-    public List<ProductDto> getProductsBySubCategory(Long subCategoryId) {
-        return productsRepo.findBySubCategory_SubCategoryId(subCategoryId)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
 
     public List<ProductDto> getProductsByCategoryName(String categoryName) {
-        return productsRepo.findByCategory_CategoryNameIgnoreCase(categoryName)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
+        return productRepo.findByCategoryNameIgnoreCase(categoryName).stream().map(this::mapToDto).toList();
     }
 
     public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
-        return productsRepo.findBySubCategory_SubCategoryNameIgnoreCase(subCategoryName)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
+        return productRepo.findBySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
     }
-
 
     public void deleteProduct(Long id) {
-        productsRepo.deleteById(id);
+        productRepo.deleteById(id);
     }
 
-    public void deleteAllProducts() {
-        productsRepo.deleteAll();
-        em.createNativeQuery("ALTER SEQUENCE products_product_id_seq RESTART WITH 1").executeUpdate();
+    public void deleteProductByName(String productName) {
+        Product existing = productRepo.findByNameIgnoreCase(productName)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        productRepo.delete(existing);
     }
 
+    public void deleteAllAndReset() {
+        productRepo.truncateProducts();
+    }
 
     private List<String> splitText(String text, int size) {
         if (text == null) return null;
@@ -108,368 +83,159 @@ public class ProductService {
         return parts;
     }
 
-    public ProductDto saveProduct(ProductDto dto) {
-        Products product;
 
-        if (dto.getProductId() != null) {
-            product = productsRepo.findById(dto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getProductId()));
-        } else {
-            product = new Products();
-        }
+    //===================================================================================
+    public ProductDto saveProduct(ProductDto dto) {
+        Product product = dto.getProductId() != null
+                ? productRepo.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getProductId()))
+                : new Product();
 
         product.setName(dto.getName());
         product.setPdfUrl(dto.getPdfUrl());
         product.setImages(dto.getImages());
-        product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
-        product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
 
-        if (dto.getCategoryId() != null) {
-            categoryRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
-        }
+        product.setDescriptionENG(dto.getDescriptionENG() != null
+                ? dto.getDescriptionENG().stream()
+                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
+                .reduce("", String::concat)
+                : null);
 
-        if (dto.getSubCategoryId() != null) {
-            subCategoryRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
-        }
-        if (dto.getBrandId() != null) {
-            brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
-        }
+        product.setDescriptionPL(dto.getDescriptionPL() != null
+                ? dto.getDescriptionPL().stream()
+                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
+                .reduce("", String::concat)
+                : null);
 
+        if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
+        if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
+        if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
 
-        Products saved = productsRepo.save(product);
-        return mapToDto(saved);
+        return mapToDto(productRepo.save(product));
     }
 
-
-    private ProductDto mapToDto(Products product) {
+    private ProductDto mapToDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setProductId(product.getProductId());
         dto.setName(product.getName());
         dto.setPdfUrl(product.getPdfUrl());
         dto.setImages(product.getImages());
-        dto.setDescriptionENG(splitText(product.getDescriptionENG(), 100));
-        dto.setDescriptionPL(splitText(product.getDescriptionPL(), 100));
 
-        dto.setCategoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null);
-        dto.setSubCategoryId(product.getSubCategory() != null ? product.getSubCategory().getSubCategoryId() : null);
+        // Przy odczycie konwertujemy \\n i \\r z powrotem na normalne znaki nowej linii
+        dto.setDescriptionENG(splitText(
+                product.getDescriptionENG() != null
+                        ? product.getDescriptionENG().replace("\\n", "\n").replace("\\r", "\r")
+                        : null, 100));
 
-        dto.setBrandId(product.getBrand() != null ? product.getBrand().getBrandId() : null);
+        dto.setDescriptionPL(splitText(
+                product.getDescriptionPL() != null
+                        ? product.getDescriptionPL().replace("\\n", "\n").replace("\\r", "\r")
+                        : null, 100));
 
+        if (product.getCategoryName() != null) dto.setCategoryName(product.getCategoryName());
+        if (product.getSubCategoryName() != null) dto.setSubCategoryName(product.getSubCategoryName());
+        if (product.getBrandName() != null) {
+            dto.setBrandName(product.getBrandName());
+            dto.setBrandName(product.getBrandName());
+        }
         return dto;
     }
 
-    private Products mapToEntity(ProductDto dto) {
-        Products product = new Products();
+
+    private Product mapToEntity(ProductDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setPdfUrl(dto.getPdfUrl());
+        product.setImages(dto.getImages());
+
+        product.setDescriptionENG(dto.getDescriptionENG() != null
+                ? dto.getDescriptionENG().stream()
+                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
+                .reduce("", String::concat)
+                : null);
+
+        product.setDescriptionPL(dto.getDescriptionPL() != null
+                ? dto.getDescriptionPL().stream()
+                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
+                .reduce("", String::concat)
+                : null);
+
+        if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
+        if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
+        if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
+
+        return product;
+    }
+
+
+    // ------------------- NOWE METODY UPDATE / PATCH -------------------
+
+    public ProductDto updateProductByName(String productName, ProductDto dto) {
+        Product product = productRepo.findByNameIgnoreCase(productName)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
         product.setName(dto.getName());
         product.setPdfUrl(dto.getPdfUrl());
         product.setImages(dto.getImages());
         product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
         product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
 
-        if (dto.getCategoryId() != null) {
-            categoryRepo.findById(dto.getCategoryId()).ifPresent(product::setCategory);
-        }
-        if (dto.getSubCategoryId() != null) {
-            subCategoryRepo.findById(dto.getSubCategoryId()).ifPresent(product::setSubCategory);
-        }
-        if (dto.getBrandId() != null) {
-            brandsRepo.findById(dto.getBrandId()).ifPresent(product::setBrand);
-        }
+        if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
+        if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
+        if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
 
-        return product;
+        return mapToDto(productRepo.save(product));
     }
-    @Transactional
-    public int importProductsFromCsv(MultipartFile file) {
-        List<Products> batch = new ArrayList<>();
-        int importedCount = 0;
-        int lineNumber = 0;
 
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+    public Optional<ProductDto> patchProductByName(String productName, ProductDto updates) {
+        return productRepo.findByNameIgnoreCase(productName).map(product -> {
+            if (updates.getName() != null) product.setName(updates.getName());
+            if (updates.getPdfUrl() != null) product.setPdfUrl(updates.getPdfUrl());
+            if (updates.getImages() != null) product.setImages(updates.getImages());
+            if (updates.getDescriptionENG() != null) product.setDescriptionENG(String.join("", updates.getDescriptionENG()));
+            if (updates.getDescriptionPL() != null) product.setDescriptionPL(String.join("", updates.getDescriptionPL()));
 
-            String line;
-            Map<String, Integer> headerMap = new HashMap<>();
-            boolean firstLine = true;
+            if (updates.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(updates.getCategoryName());
+            if (updates.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(updates.getSubCategoryName());
+            if (updates.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(updates.getBrandName());
 
-            while ((line = br.readLine()) != null) {
-                lineNumber++;
+            return mapToDto(productRepo.save(product));
+        });
+    }
+    public Optional<ProductDto> patchProduct(Long id, ProductDto updates) {
+        return productRepo.findById(id).map(existing -> {
+            if (updates.getName() != null) existing.setName(updates.getName());
+            if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
+                    if (updates.getImages() != null) existing.setImages(updates.getImages());
+                    if (updates.getDescriptionENG() != null)existing.setDescriptionENG(String.join("", updates.getDescriptionENG()));
+                    if (updates.getDescriptionPL() != null) existing.setDescriptionPL(String.join("", updates.getDescriptionPL()));
+                    if (updates.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(updates.getCategoryName());
+                    if (updates.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(updates.getSubCategoryName());
+                    if (updates.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(updates.getBrandName());
 
-                if (firstLine) {
-                    String[] headers = line.toLowerCase().split(";", -1);
-                    for (int i = 0; i < headers.length; i++) {
-                        headerMap.put(headers[i].trim(), i);
-                    }
-                    firstLine = false;
-                    continue;
-                }
 
-                try {
-                    ProductDto dto = parseLineWithHeaders(line, headerMap);
-
-                    // 1️⃣ Sprawdź kategorię
-                    Optional<Category> categoryOpt = categoryRepo.findById(dto.getCategoryId());
-                    if (categoryOpt.isEmpty()) {
-                        Category category = new Category();
-                        category.setCategoryId(dto.getCategoryId());
-                        category.setCategoryName(dto.getName());
-                        categoryRepo.save(category);
-                    }
-
-                    // 2️⃣ Sprawdź subkategorię
-                    Optional<SubCategory> subCategoryOpt = subCategoryRepo.findById(dto.getSubCategoryId());
-                    if (subCategoryOpt.isEmpty()) {
-                        SubCategory subCategory = new SubCategory();
-                        subCategory.setSubCategoryId(dto.getSubCategoryId());
-                        subCategory.setSubCategoryName(dto.getName());
-                        //subCategory.setCategories(dto.getCategoryId());
-                        subCategoryRepo.save(subCategory);
-                    }
-
-                    // 3️⃣ Mapowanie produktu
-                    Products entity = mapToEntity(dto);
-                    batch.add(entity);
-
-                    if (batch.size() == 500) {
-                        productsRepo.saveAll(batch);
-                        importedCount += batch.size();
-                        batch.clear();
-                    }
-
-                } catch (Exception e) {
-                    System.err.println("Błąd w linii " + lineNumber + ": " + e.getMessage());
-                }
-            }
-
-            if (!batch.isEmpty()) {
-                productsRepo.saveAll(batch);
-                importedCount += batch.size();
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("CSV import failed: " + e.getMessage(), e);
-        }
-
-        return importedCount;
+            Product saved = productRepo.save(existing);
+            return mapToDto(saved);
+        });
     }
 
 
-   /* @Transactional
-    public int importProductsFromCsv(MultipartFile file) {
-        List<Products> batch = new ArrayList<>();
-        int importedCount = 0;
-        int lineNumber = 0;
 
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+    public Optional<ProductDto> updateProduct(Long id,ProductDto dto) {
 
-            String line;
-            Map<String, Integer> headerMap = new HashMap<>();
-            boolean firstLine = true;
-
-            while ((line = br.readLine()) != null) {
-                lineNumber++;
-
-                if (firstLine) {
-
-                    String[] headers = line.toLowerCase().split(";", -1);
-                    for (int i = 0; i < headers.length; i++) {
-                        headerMap.put(headers[i].trim(), i);
-                    }
-                    firstLine = false;
-                    continue;
-                }
-
-                try {
-                    ProductDto dto = parseLineWithHeaders(line, headerMap);
-                    Products entity = mapToEntity(dto);
-                    batch.add(entity);
-
-                    if (batch.size() == 500) {
-                        productsRepo.saveAll(batch);
-                        importedCount += batch.size();
-                        batch.clear();
-                    }
-                } catch (Exception e) {
-                    System.err.println("Błąd w linii " + lineNumber + ": " + e.getMessage());
-                }
-            }
-
-            if (!batch.isEmpty()) {
-                productsRepo.saveAll(batch);
-                importedCount += batch.size();
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("CSV import failed: " + e.getMessage(), e);
-        }
-
-        return importedCount;
-    }*/
+        return productRepo.findById(id).map(existing -> {
+            if (dto.getName() != null) existing.setName(existing.getName());
+            if (dto.getPdfUrl() != null) existing.setPdfUrl(existing.getPdfUrl());
+            if (dto.getImages() != null) existing.setImages(existing.getImages());
+            if (dto.getDescriptionENG() != null)existing.setDescriptionENG(String.join("", existing.getDescriptionENG()));
+            if (dto.getDescriptionPL() != null) existing.setDescriptionPL(String.join("", existing.getDescriptionPL()));
+            if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(existing.getCategoryName());
+            if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(existing.getSubCategoryName());
+            if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(existing.getBrandName());
 
 
-    /*private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
-        String[] fields = line.split(";", -1);
-        ProductDto dto = new ProductDto();
-        Integer idx;
-
-        idx = headerMap.get("name");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            // zamiast ustawiać product.name, ustawiamy brandName
-            Long brandId = findOrCreateBrandByBrandName(fields[idx]);
-            dto.setBrandId(brandId);
-
-            // product.name zostaje puste, chyba że inny plik CSV dostarczy np. "productname"
-            dto.setName(null);
-        }
-
-        //idx = headerMap.get("productname");
-        //if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-          //  dto.setName(fields[idx]);
-        //}
-        idx = headerMap.get("brandname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long branId = findOrCreateBrandByBrandName(fields[idx]);
-            dto.setBrandId(branId);
-        }
-
-
-
-        String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
-        for (String key : descPLKeys) {
-            idx = headerMap.get(key);
-            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-                dto.setDescriptionPL(List.of(fields[idx]));
-                break;
-            }
-        }
-
-        String[] descENGKeys = {"desc", "descriptioneng", "description_eng", "descriptionEng"};
-        for (String key : descENGKeys) {
-            idx = headerMap.get(key);
-            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-                dto.setDescriptionENG(List.of(fields[idx]));
-                break;
-            }
-        }
-
-        idx = headerMap.get("categoryid");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            try {
-                dto.setCategoryId(Long.parseLong(fields[idx]));
-            } catch (NumberFormatException e) {
-                System.err.println("⚠️ Nieprawidłowa wartość categoryId: " + fields[idx] + " → ustawiono null");
-                dto.setCategoryId(null);
-            }
-        }
-
-        idx = headerMap.get("categoryname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long catId = findOrCreateCategoryByName(fields[idx]);
-            dto.setCategoryId(catId);
-        }
-
-        idx = headerMap.get("subcategoryid");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            try {
-                dto.setSubCategoryId(Long.parseLong(fields[idx]));
-            } catch (NumberFormatException e) {
-                System.err.println("⚠️ Nieprawidłowa wartość subCategoryId: " + fields[idx] + " → ustawiono null");
-                dto.setSubCategoryId(null);
-            }
-        }
-
-        idx = headerMap.get("subcategoryname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long subId = findOrCreateSubCategoryByName(fields[idx], dto.getCategoryId());
-            dto.setSubCategoryId(subId);
-        }
-
-        // PDF URL
-        idx = headerMap.get("pdf");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setPdfUrl(fields[idx]);
-        }
-
-
-
-        idx = headerMap.get("images");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setImages(List.of(fields[idx].split(",")));
-        } else {
-            dto.setImages(null);
-        }
-
-        return dto;
-    }*/
-    private ProductDto parseLineWithHeaders(String line, java.util.Map<String, Integer> headerMap) {
-        String[] fields = line.split(";", -1);
-        ProductDto dto = new ProductDto();
-        Integer idx;
-
-
-        // ✅ Product name
-        idx = headerMap.get("name");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setName(fields[idx].trim());
-        }
-        // ✅ BrandName → findOrCreate
-        idx = headerMap.get("brandname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long brandId = findOrCreateBrandByBrandName(fields[idx]);
-            dto.setBrandId(brandId);
-        }
-
-
-
-        // ✅ Category by Name
-        idx = headerMap.get("categoryname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long catId = findOrCreateCategoryByName(fields[idx]);
-            dto.setCategoryId(catId);
-        }
-
-        // ✅ SubCategory by Name (powiązana z CategoryId)
-        idx = headerMap.get("subcategoryname");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            Long subId = findOrCreateSubCategoryByName(fields[idx], dto.getCategoryId());
-            dto.setSubCategoryId(subId);
-        }
-
-        // ✅ Description PL
-        String[] descPLKeys = {"descriptionpl", "description_pl", "descriptionPl"};
-        for (String key : descPLKeys) {
-            idx = headerMap.get(key);
-            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-                dto.setDescriptionPL(List.of(fields[idx]));
-                break;
-            }
-        }
-
-        // ✅ Description ENG
-        String[] descENGKeys = {"desc", "descriptioneng", "description_eng", "descriptionEng"};
-        for (String key : descENGKeys) {
-            idx = headerMap.get(key);
-            if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-                dto.setDescriptionENG(List.of(fields[idx]));
-                break;
-            }
-        }
-
-        // ✅ PDF URL
-        idx = headerMap.get("pdf");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setPdfUrl(fields[idx]);
-        }
-
-        // ✅ Images (rozdzielone przecinkami)
-        idx = headerMap.get("images");
-        if (idx != null && idx < fields.length && !fields[idx].isEmpty()) {
-            dto.setImages(List.of(fields[idx].split(",")));
-        } else {
-            dto.setImages(null);
-        }
-
-        return dto;
+            Product saved = productRepo.save(existing);
+            return mapToDto(saved);
+        });
     }
 
 
@@ -527,35 +293,29 @@ public class ProductService {
                 });
     }
 
-    public List<ProductDto> getProductsByCategoryAndSubCategory(Long categoryId, Long subCategoryId) {
-        return productsRepo.findByCategory_CategoryIdAndSubCategory_SubCategoryId(categoryId, subCategoryId)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
 
     public List<ProductDto> getProductByName(String productName) {
-        return productsRepo.findByNameIgnoreCase(productName)
+        return productRepo.findByNameIgnoreCase(productName)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
     public List<ProductDto> getProductsByCategoryNameAndSubCategoryName(String categoryName, String subCategoryName) {
-        return productsRepo.findByCategory_CategoryNameAndSubCategory_SubCategoryName(categoryName, subCategoryName)
+        return productRepo.findByCategoryNameIgnoreCaseAndSubCategoryNameIgnoreCase(categoryName, subCategoryName)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
 
     public List<ProductDto> getProductsByBrandName(String brandName) {
-        return productsRepo.findByBrand_BrandNameIgnoreCase(brandName)
+        return productRepo.findByBrandNameIgnoreCase(brandName)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
     }
-}
 
+}
 
 
 

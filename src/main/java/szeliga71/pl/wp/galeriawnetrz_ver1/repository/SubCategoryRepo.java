@@ -13,6 +13,7 @@ import java.util.Optional;
 
 
 public interface SubCategoryRepo extends JpaRepository<SubCategory, Long> {
+
     List<SubCategory> findByCategory_CategoryId(Long categoryId);
 
     boolean existsBySlugSubCategoryName(String slugSubCategoryName);
@@ -23,6 +24,8 @@ public interface SubCategoryRepo extends JpaRepository<SubCategory, Long> {
     @Transactional
     @Query(value = "TRUNCATE TABLE sub_categories RESTART IDENTITY CASCADE", nativeQuery = true)
     void truncateSubCategory();
+
+    List<SubCategory> findByCategory_CategoryName(String categoryName);
 
 }
 

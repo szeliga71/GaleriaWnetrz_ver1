@@ -8,6 +8,8 @@ public class BrandCreateDto {
     private String brandUrl;
     private String slugName;
 
+
+
     public String getBrandName() {
         return brandName;
     }

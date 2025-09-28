@@ -14,11 +14,12 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoryId;
 
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT",unique = true)
     private String categoryName;
+    @Column(columnDefinition = "TEXT")
     private String categoryImageUrl;
 
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT",unique = true)
     private String slugCategoryName;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

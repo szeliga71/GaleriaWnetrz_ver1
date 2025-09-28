@@ -9,10 +9,11 @@ public class SubCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long subCategoryId;
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT",unique = true)
     private String subCategoryName;
+    @Column(columnDefinition = "TEXT")
     private String subCategoryImageUrl;
-    @Column(unique = true)
+    @Column(columnDefinition = "TEXT",unique = true)
     private String slugSubCategoryName;
 
     @ManyToOne

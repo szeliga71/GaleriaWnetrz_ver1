@@ -1,10 +1,8 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoryDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CreateSubCategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.SubCategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
@@ -18,18 +16,15 @@ import java.util.Optional;
 @Transactional
 public class SubCategoryService {
 
-    private final SubCategoryRepo subCategoryRepo;
-    private final CategoryRepo categoryRepo;
+    @Autowired
+    SubCategoryRepo subCategoryRepo;
+    @Autowired
+    CategoryRepo categoryRepo;
 
-    public SubCategoryService(SubCategoryRepo subCategoryRepo, CategoryRepo categoryRepo) {
+    /*public SubCategoryService(SubCategoryRepo subCategoryRepo, CategoryRepo categoryRepo) {
         this.subCategoryRepo = subCategoryRepo;
         this.categoryRepo = categoryRepo;
-    }
-
-    public List<SubCategory> getAllSubCategory() {
-        return subCategoryRepo.findAll();
-    }
-
+    }*/
 
     public void deleteAllSubCategoryAndReset() {
         subCategoryRepo.truncateSubCategory();
@@ -56,21 +51,6 @@ public class SubCategoryService {
         return mapToDto(saved);
     }
 
-
-    public SubCategoryDto updateSubCategory(Long id, SubCategoryDto dto) {
-        SubCategory subCategory = getSubCategoryById(id);
-        Category category = categoryRepo.findById(dto.getCategoryId())
-                .orElse(null);
-
-        subCategory.setSubCategoryName(dto.getSubCategoryName());
-        subCategory.setSubCategoryImageUrl(dto.getSubCategoryImageUrl());
-        subCategory.setSlugSubCategoryName(dto.getSlugSubCategoryName());
-       // subCategory.setSlugSubCategoryName(generateSlug(dto.getSubCategoryName()));
-        subCategory.setCategory(category);
-
-        SubCategory saved = subCategoryRepo.save(subCategory);
-        return mapToDto(saved);
-    }
 
     public void deleteSubCategory(Long id) {
         SubCategory subCategory = subCategoryRepo.findById(id)
@@ -118,7 +98,6 @@ public class SubCategoryService {
 
 
 
-
     private String generateSlug(String name) {
         if (name == null) return null;
         return name.toLowerCase()
@@ -126,6 +105,23 @@ public class SubCategoryService {
                 .replaceAll("^-|-$", "");
     }
 
+
+
+
+    @Transactional
+    public SubCategoryDto updateSubCategory(Long id, SubCategoryDto dto) {
+        SubCategory subCategory = getSubCategoryById(id);
+        Category category = categoryRepo.findById(dto.getCategoryId())
+                .orElse(null);
+
+        subCategory.setSubCategoryName(dto.getSubCategoryName());
+        subCategory.setSubCategoryImageUrl(dto.getSubCategoryImageUrl());
+        subCategory.setSlugSubCategoryName(dto.getSlugSubCategoryName());
+        subCategory.setCategory(category);
+
+        SubCategory saved = subCategoryRepo.save(subCategory);
+        return mapToDto(saved);
+    }
     @Transactional
     public Optional<SubCategoryDto> patchSubCategory(Long id, SubCategoryDto updates) {
         return subCategoryRepo.findById(id).map(existing -> {
@@ -141,30 +137,6 @@ public class SubCategoryService {
             return mapToDto(saved);
         });
     }
-
-   /* @Transactional
-    public SubCategoryDto updateSubCategoryByName(String subCategoryName, SubCategoryDto dto) {
-        SubCategory existing = subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName)
-                .orElse(null);
-
-        if(dto.getSubCategoryName() !=null ) if (existing != null) {
-            existing.setSubCategoryName(dto.getSubCategoryName());
-        }
-        if(dto.getSubCategoryImageUrl()!=null) if (existing != null) {
-            existing.setSubCategoryImageUrl(dto.getSubCategoryImageUrl());
-        }
-        if (existing != null) {
-            existing.setSlugSubCategoryName(dto.getSlugSubCategoryName());
-        }
-        SubCategory saved = null;
-        if (existing != null) {
-            saved = subCategoryRepo.save(existing);
-        }
-        if (saved != null) {
-            return mapToDto(saved);
-        }
-    }*/
-
     @Transactional
     public SubCategoryDto updateSubCategoryByName(String subCategoryName, SubCategoryDto dto) {
         SubCategory existing = subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName)
@@ -205,10 +177,24 @@ public class SubCategoryService {
 
     }
 
-    public Optional<SubCategory> getSubCategoryByName(String subCategoryName) {
-        return subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName);
+
+
+    public Optional<Category> getCategoryBySubCategoryName(String subCategoryName) {
+        return subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName)
+                .map(SubCategory::getCategory);
     }
 
+    public Optional<Category> getCategoryBySubCategoryId(Long subCategoryId) {
+        return subCategoryRepo.findById(subCategoryId)
+                .map(SubCategory::getCategory);
+    }
+
+    public List<SubCategory> getSubCategoryByCategoryName(String categoryName) {
+        return subCategoryRepo.findByCategory_CategoryName(categoryName);
+    }
+    public List<SubCategory> getSubCategoryByCategoryId(Long categoryId) {
+        return subCategoryRepo.findByCategory_CategoryId(categoryId);
+    }
 }
 
 

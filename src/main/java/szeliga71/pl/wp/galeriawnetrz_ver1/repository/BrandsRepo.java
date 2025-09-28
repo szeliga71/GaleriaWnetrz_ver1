@@ -15,10 +15,10 @@ public interface BrandsRepo extends JpaRepository<Brands, Long> {
 
     Optional<Brands> findByBrandNameIgnoreCase(String brandName);
 
+
     @Modifying
     @Transactional
     @Query(value = "TRUNCATE TABLE brands RESTART IDENTITY CASCADE", nativeQuery = true)
     void truncateBrands();
-
 
 }

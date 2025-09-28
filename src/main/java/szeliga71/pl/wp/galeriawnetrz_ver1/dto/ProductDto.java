@@ -3,8 +3,7 @@ package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+
 
 import java.util.List;
 
@@ -15,19 +14,12 @@ public class ProductDto {
     private Long productId;
     private String name;
     private String brandName;
-    @NotNull
-    @Min(1)
-    private Long brandId;
+
     private List<String> descriptionENG;
     private List<String> descriptionPL;
-    @NotNull
-    @Min(1)
-    private Long categoryId;
-    @NotNull
-    @Min(1)
-    private Long subCategoryId;
+    private String categoryName;
+    private String subCategoryName;
     private String pdfUrl;
-
     private List<String> images;
     private String coverImageUrl;
 
@@ -64,21 +56,7 @@ public class ProductDto {
         this.descriptionPL = descriptionPL;
     }
 
-    public Long getCategoryId() {
-        return categoryId;
-    }
 
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public Long getSubCategoryId() {
-        return subCategoryId;
-    }
-
-    public void setSubCategoryId(Long subCategoryId) {
-        this.subCategoryId = subCategoryId;
-    }
 
     public String getPdfUrl() {
         return pdfUrl;
@@ -88,13 +66,7 @@ public class ProductDto {
         this.pdfUrl = pdfUrl;
     }
 
-    public Long getBrandId() {
-        return brandId;
-    }
 
-    public void setBrandId(Long brandId) {
-        this.brandId = brandId;
-    }
 
     public List<String> getImages() {
         return images;
@@ -121,6 +93,22 @@ public class ProductDto {
 
     public void setBrandName(String brandName) {
         this.brandName = brandName;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getSubCategoryName() {
+        return subCategoryName;
+    }
+
+    public void setSubCategoryName(String subCategoryName) {
+        this.subCategoryName = subCategoryName;
     }
 }
 

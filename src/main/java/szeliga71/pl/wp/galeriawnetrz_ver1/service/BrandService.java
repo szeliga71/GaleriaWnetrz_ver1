@@ -5,33 +5,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandCreateDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandUpdateDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class BrandService {
+
     @Autowired
     BrandsRepo brandsRepo;
 
-    public void deleteBrand(Long id) {
-        brandsRepo.deleteById(id);
-    }
-
-    public List<BrandDto> getAllBrands() {
-        return brandsRepo.findAll()
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }
-    public void deleteAllAndReset() {
-        brandsRepo.truncateBrands();
-    }
 
 
     public Optional<BrandDto> getBrandById(Long id) {
@@ -39,9 +27,39 @@ public class BrandService {
                 .map(this::mapToDto);
     }
 
+
+    public List<BrandDto> getAllBrands() {
+        return brandsRepo.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public void deleteBrand(Long id) {
+        if (brandsRepo.existsById(id)) {
+            brandsRepo.deleteById(id);
+        }
+    }
+    @Transactional
+    public void deleteBrandByName(String brandName) {
+        Brands existing = brandsRepo.findByBrandNameIgnoreCase(brandName)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+        brandsRepo.delete(existing);
+    }
+    public void deleteAllAndReset() {
+        brandsRepo.truncateBrands();
+    }
+
+    @Transactional
+    public Optional<BrandDto> getBrandByName(String brandName) {
+        return brandsRepo.findByBrandNameIgnoreCase(brandName)
+        .map(this::mapToDto);
+    }
+
     private BrandDto mapToDto(Brands brand) {
         BrandDto dto = new BrandDto();
-        //dto.setBrandId(brand.getBrandId());
+
+        dto.setBrandId(brand.getBrandId());
         dto.setBrandName(brand.getBrandName());
         dto.setBrandImageUrl(brand.getBrandImageUrl());
         dto.setBrandUrl(brand.getBrandUrl());
@@ -52,20 +70,6 @@ public class BrandService {
         return dto;
     }
 
-    private Brands mapToEntity(BrandDto dto) {
-        Brands brand = new Brands();
-        brand.setBrandName(dto.getBrandName());
-        brand.setBrandImageUrl(dto.getBrandImageUrl());
-        brand.setBrandUrl(dto.getBrandUrl());
-        brand.setSlugName(dto.getSlugName());
-        if (dto.getBrandDescriptionENG() != null) {
-            brand.setBrandDescriptionENG(String.join("", dto.getBrandDescriptionENG()));
-        }
-        if (dto.getBrandDescriptionPL() != null) {
-            brand.setBrandDescriptionPL(String.join("", dto.getBrandDescriptionPL()));
-        }
-        return brand;
-    }
 
     private List<String> splitText(String text, int size) {
         if (text == null) return null;
@@ -85,7 +89,7 @@ public class BrandService {
     }
 
     @Transactional
-    public Optional<BrandDto> patchBrand(Long id, BrandUpdateDto updates) {
+    public Optional<BrandDto> patchBrand(Long id, BrandCreateDto updates) {
         return brandsRepo.findById(id).map(existing -> {
             if (updates.getBrandName() != null) existing.setBrandName(updates.getBrandName());
             if (updates.getBrandUrl() != null) existing.setBrandUrl(updates.getBrandUrl());
@@ -101,7 +105,7 @@ public class BrandService {
         });
     }
     @Transactional
-    public BrandDto updateBrand(Long id, BrandUpdateDto dto) {
+    public BrandDto updateBrand(Long id, BrandCreateDto dto) {
         Brands existing = brandsRepo.findById(id)
                 .orElse(null);
 
@@ -117,22 +121,10 @@ public class BrandService {
     }
 
 
-    public BrandDto createBrand(BrandDto brandDto) {
-        Brands brand = mapToEntity(brandDto);
-        brand.setSlugName(generateSlug(brandDto.getBrandName()));
 
-        Brands saved = brandsRepo.save(brand);
-        return mapToDto(saved);
-    }
 
     @Transactional
-    public Optional<Brands> getBrandByName(String brandName) {
-        return brandsRepo.findByBrandNameIgnoreCase(brandName);
-                //.map(this::mapToDto);
-    }
-
-    @Transactional
-    public BrandDto updateBrandByName(String brandName, BrandUpdateDto dto) {
+    public BrandDto updateBrandByName(String brandName, BrandCreateDto dto) {
         Brands existing = brandsRepo.findByBrandNameIgnoreCase(brandName)
                 .orElseThrow(() -> new RuntimeException("Brand not found"));
 
@@ -148,7 +140,7 @@ public class BrandService {
     }
 
     @Transactional
-    public Optional<BrandDto> patchBrandByName(String brandName, BrandUpdateDto updates) {
+    public Optional<BrandDto> patchBrandByName(String brandName, BrandCreateDto updates) {
         return brandsRepo.findByBrandNameIgnoreCase(brandName).map(existing -> {
             if (updates.getBrandName() != null) existing.setBrandName(updates.getBrandName());
             if (updates.getBrandUrl() != null) existing.setBrandUrl(updates.getBrandUrl());
@@ -169,19 +161,13 @@ public class BrandService {
         brand.setBrandName(dto.getBrandName());
         brand.setBrandImageUrl(dto.getBrandImageUrl());
         brand.setBrandUrl(dto.getBrandUrl());
-        brand.setBrandDescriptionPL(dto.getBrandDescriptionPL()); // zwykły string
-        brand.setBrandDescriptionENG(dto.getBrandDescriptionENG()); // zwykły string
+        brand.setBrandDescriptionPL(dto.getBrandDescriptionPL());
+        brand.setBrandDescriptionENG(dto.getBrandDescriptionENG());
         brand.setSlugName(generateSlug(dto.getBrandName()));
 
         Brands saved = brandsRepo.save(brand);
         return mapToDto(saved); // tutaj splitText zmieni string na List<String>
     }
 
-    @Transactional
-    public void deleteBrandByName(String brandName) {
-        Brands existing = brandsRepo.findByBrandNameIgnoreCase(brandName)
-                .orElseThrow(() -> new RuntimeException("Brand not found"));
-        brandsRepo.delete(existing);
-    }
 
 }
