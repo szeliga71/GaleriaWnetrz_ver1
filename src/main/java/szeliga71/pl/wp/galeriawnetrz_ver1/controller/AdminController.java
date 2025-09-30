@@ -9,6 +9,7 @@ import szeliga71.pl.wp.galeriawnetrz_ver1.dto.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.service.*;
 
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -20,16 +21,25 @@ public class AdminController {
     private final ProductService productService;
     private final SubCategoryService subCategoryService;
     private final PostsService postsService;
+    private final QueryService queryService;
 
     @Autowired
-    public AdminController(BrandService brandService, CategoryService categoryService, ProductService productService, SubCategoryService subCategoryService, PostsService postsService) {
+    public AdminController(BrandService brandService, CategoryService categoryService, ProductService productService, SubCategoryService subCategoryService, PostsService postsService,QueryService queryService) {
         this.brandService = brandService;
         this.categoryService = categoryService;
         this.productService = productService;
         this.subCategoryService = subCategoryService;
         this.postsService = postsService;
+        this.queryService = queryService;
     }
 
+
+    //==============================SQL====================================
+    @PostMapping("/sql")
+    public ResponseEntity<List<Object[]>> execute(@RequestBody SqlRequestDto request) {
+        List<Object[]> result = queryService.runSql(request.getQuery());
+        return ResponseEntity.ok(result);
+    }
 
     //================================PRODUCT=============================================
 
