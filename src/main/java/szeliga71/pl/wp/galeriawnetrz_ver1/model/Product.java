@@ -13,10 +13,10 @@ public class Product {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(columnDefinition = "TEXT",name = "name",unique = true)
+    @Column(name = "name",unique = true)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    //@Column(columnDefinition = "TEXT")
     private String brandName;
 
     @Column(columnDefinition = "TEXT", name = "descriptionpl")
@@ -25,16 +25,16 @@ public class Product {
     @Column(columnDefinition = "TEXT", name = "descriptioneng")
     private String descriptionENG;
 
-    @Column(columnDefinition = "TEXT")
+    //@Column(columnDefinition = "TEXT")
     private String categoryName;
 
-    @Column(columnDefinition = "TEXT")
+    //@Column(columnDefinition = "TEXT")
     private String subCategoryName;
 
     @Column(columnDefinition = "TEXT")
     private String pdfUrl;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "product_images",
             joinColumns = @JoinColumn(name = "product_id")

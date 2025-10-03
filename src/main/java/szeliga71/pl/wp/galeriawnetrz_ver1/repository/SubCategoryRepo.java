@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public interface SubCategoryRepo extends JpaRepository<SubCategory, Long> {
 
+    List<SubCategory> findBySubCategoryNameIgnoreCaseContaining(String query);
+
     List<SubCategory> findByCategory_CategoryId(Long categoryId);
 
     boolean existsBySlugSubCategoryName(String slugSubCategoryName);

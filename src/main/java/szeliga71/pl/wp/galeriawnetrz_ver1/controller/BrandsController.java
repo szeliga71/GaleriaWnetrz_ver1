@@ -45,6 +45,12 @@ public class BrandsController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+    @GetMapping("/brand/by-slug-name/{slugBrandName}")
+    public ResponseEntity<BrandDto> getBrandBySlugName(@PathVariable String slugBrandName) {
+        return brandService.getBrandBySlugName(slugBrandName)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 
 }

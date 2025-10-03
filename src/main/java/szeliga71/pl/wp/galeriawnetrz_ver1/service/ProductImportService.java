@@ -1,7 +1,7 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Product;
@@ -16,6 +16,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
+import jakarta.transaction.Transactional;
+
 
 @Service
 public class ProductImportService {
@@ -33,37 +39,35 @@ public class ProductImportService {
         this.subCategoryRepo = subCategoryRepo;
     }
 
+
+
     @Transactional
     public void importCsv(InputStream inputStream) throws IOException {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            boolean firstLine = true;
+        try (
+                BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                CSVParser parser = new CSVParser(br, CSVFormat.DEFAULT
+                        .withDelimiter(';')   // średnik jako separator
+                        .withFirstRecordAsHeader() // pomijamy nagłówki
+                        .withIgnoreEmptyLines(true)
+                        .withTrim())
+        ) {
+            for (CSVRecord record : parser) {
 
-            while ((line = br.readLine()) != null) {
-                if (firstLine) {
-                    firstLine = false; // pomijamy nagłówek
-                    continue;
-                }
-
-                String[] fields = line.split(";");
-                if (fields.length < 8) continue;
-
-                String name = fields[0].trim();
-                String descEng = fields[1].trim();
-                String descPl = fields[2].trim();
-                String pdf = fields[3].trim();
-                String brandName = fields[4].trim();
-                String imagesCsv = fields[5].trim();
-                String subCategoryName = fields[6].trim();
-                String categoryName = fields[7].trim();
-
+                String name = record.get(0).trim();
+                String descEng = record.get(1).trim();
+                String descPl = record.get(2).trim();
+                String pdf = record.get(3).trim();
+                String brandName = record.get(4).trim();
+                String imagesCsv = record.get(5).trim();
+                String subCategoryName = record.get(6).trim();
+                String categoryName = record.get(7).trim();
 
                 if (productRepo.findByNameIgnoreCase(name).isPresent()) {
-                    // Jeśli produkt istnieje, pomijamy go
+                    // pomijamy duplikaty
                     continue;
                 }
 
-                // Sprawdzenie/utworzenie brandu
+                // Brand
                 Brands brand = brandsRepo.findByBrandNameIgnoreCase(brandName)
                         .orElseGet(() -> {
                             Brands b = new Brands();
@@ -72,7 +76,7 @@ public class ProductImportService {
                             return brandsRepo.save(b);
                         });
 
-                // Sprawdzenie/utworzenie kategorii
+                // Category
                 Category category = categoryRepo.findByCategoryNameIgnoreCase(categoryName)
                         .orElseGet(() -> {
                             Category c = new Category();
@@ -81,7 +85,7 @@ public class ProductImportService {
                             return categoryRepo.save(c);
                         });
 
-                // Sprawdzenie/utworzenie subkategorii
+                // SubCategory
                 SubCategory subCategory = subCategoryRepo.findBySubCategoryNameIgnoreCase(subCategoryName)
                         .orElseGet(() -> {
                             SubCategory sc = new SubCategory();
@@ -91,7 +95,7 @@ public class ProductImportService {
                             return subCategoryRepo.save(sc);
                         });
 
-                // Tworzenie produktu
+                // Product
                 Product product = new Product();
                 product.setName(name);
                 product.setDescriptionENG(descEng);
@@ -100,13 +104,15 @@ public class ProductImportService {
                 product.setBrandName(brand.getBrandName());
                 product.setCategoryName(category.getCategoryName());
                 product.setSubCategoryName(subCategory.getSubCategoryName());
-                product.setImages(Arrays.asList(imagesCsv.split(","))); // obrazy oddzielone przecinkiem
+
+                if (!imagesCsv.isEmpty()) {
+                    product.setImages(Arrays.asList(imagesCsv.split(",")));
+                }
 
                 productRepo.save(product);
             }
         }
     }
-
 
     private String generateSlug(String name) {
         if (name == null) return null;

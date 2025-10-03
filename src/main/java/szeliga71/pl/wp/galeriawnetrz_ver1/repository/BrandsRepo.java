@@ -7,18 +7,20 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface BrandsRepo extends JpaRepository<Brands, Long> {
-    Optional<Brands> findByBrandName(String brandName);
 
     Optional<Brands> findByBrandNameIgnoreCase(String brandName);
 
+    Optional<Brands> findBySlugNameIgnoreCase(String slugBrandName);
+
+    List<Brands> findByBrandNameIgnoreCaseContaining(String query);
 
     @Modifying
     @Transactional
     @Query(value = "TRUNCATE TABLE brands RESTART IDENTITY CASCADE", nativeQuery = true)
     void truncateBrands();
-
 }

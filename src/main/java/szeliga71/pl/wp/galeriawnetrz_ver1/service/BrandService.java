@@ -169,5 +169,10 @@ public class BrandService {
         return mapToDto(saved); // tutaj splitText zmieni string na List<String>
     }
 
+    @Transactional
+    public Optional<BrandDto> getBrandBySlugName(String slugBrandName) {
+        return brandsRepo.findBySlugNameIgnoreCase(slugBrandName)
+                .map(this::mapToDto);
 
+    }
 }
