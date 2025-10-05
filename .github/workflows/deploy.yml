@@ -3,7 +3,7 @@ name: Build & Deploy on self-hosted
 on:
   pull_request:
     types: [closed]
-    branches: [ "main" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 permissions:
