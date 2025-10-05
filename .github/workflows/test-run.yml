@@ -1,7 +1,9 @@
 name: Test self-hosted runner
 
 on:
-  workflow_dispatch:  # pozwala uruchomić ręcznie
+  push:
+    branches: [ "develop" ]   # <-- dodane
+  workflow_dispatch:
 
 jobs:
   test:
@@ -12,4 +14,3 @@ jobs:
           echo "Host: $(hostname)"
           echo "User: $(whoami)"
           docker ps || true
-
