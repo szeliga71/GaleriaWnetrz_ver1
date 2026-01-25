@@ -21,10 +21,6 @@ public class ProductController {
     @Autowired
     ProductService productService;
 
-    /*@GetMapping("/category/name/{name}")
-    public List<ProductDto> getProductsByCategoryName(@PathVariable String name) {
-        return productService.getProductsByCategoryName(name);
-    }*/
     @GetMapping("/category/name/{categoryName}")
     public List<ProductDto> getProductsByCategoryName(
             @PathVariable String categoryName,
@@ -33,16 +29,11 @@ public class ProductController {
         return productService.getProductsByCategoryName(categoryName, page, size);
     }
 
-
     @GetMapping("/subcategory/name/{subCategoryName}")
     public List<ProductDto> getProductsBySubCategoryName(@PathVariable("subCategoryName") String subCategoryName) {
         return productService.getProductsBySubCategoryName(subCategoryName);
     }
 
-    /*@GetMapping("/brand/name/{brandName}")
-   public List<ProductDto> getProductsByBrandName(@PathVariable("brandName") String brandName) {
-       return productService.getProductsByBrandName(brandName);
-   }*/
     @GetMapping("/brand/name/{brandName}")
     public List<ProductDto> getProductsByBrandName(
             @PathVariable String brandName,
@@ -51,10 +42,6 @@ public class ProductController {
         return productService.getProductsByBrandName(brandName, page, size);
     }
 
-    /*@GetMapping("/all")
-    public List<ProductDto> getAllProducts() {
-        return productService.getAllProducts();
-    }*/
     @GetMapping("/all")
     public List<ProductDto> getAllProducts(
             @RequestParam(required = false) Integer page,
@@ -77,5 +64,24 @@ public class ProductController {
         List<ProductDto> products = productService.getProductsByCategoryNameAndSubCategoryName(categoryName, subCategoryName);
         return ResponseEntity.ok(products);
     }
+    //  zliczanie
+    // Liczba produktów dla brandu
+    @GetMapping("/brand/name/{brandName}/count")
+    public long countProductsByBrandName(@PathVariable String brandName) {
+        return productService.countProductsByBrandName(brandName);
+    }
+
+    // Liczba produktów dla kategorii
+    @GetMapping("/category/name/{categoryName}/count")
+    public long countProductsByCategoryName(@PathVariable String categoryName) {
+        return productService.countProductsByCategoryName(categoryName);
+    }
+
+    // Liczba produktów dla podkategorii
+    @GetMapping("/subcategory/name/{subCategoryName}/count")
+    public long countProductsBySubCategoryName(@PathVariable String subCategoryName) {
+        return productService.countProductsBySubCategoryName(subCategoryName);
+    }
+
 }
 

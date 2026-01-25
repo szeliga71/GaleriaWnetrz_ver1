@@ -31,6 +31,17 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
     List<Product> findByCategoryNameIgnoreCaseAndSubCategoryNameIgnoreCase(String categoryName, String subCategoryName);
 
 
+    // zliczanie
+    // Liczba produktów dla brandu
+    long countByBrandNameIgnoreCase(String brandName);
+
+    // Liczba produktów dla kategorii
+    long countByCategoryNameIgnoreCase(String categoryName);
+
+    // Liczba produktów dla podkategorii
+    long countBySubCategoryNameIgnoreCase(String subCategoryName);
+
+
     @Modifying
     @Transactional
     @Query(value = "TRUNCATE TABLE products RESTART IDENTITY CASCADE", nativeQuery = true)

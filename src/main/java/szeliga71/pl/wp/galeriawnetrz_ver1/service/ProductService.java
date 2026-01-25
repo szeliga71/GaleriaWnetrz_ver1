@@ -40,7 +40,7 @@ public class ProductService {
     private EntityManager em;
 
 
-    @Cacheable(value = "products", key = "'allProducts'")
+    @Cacheable(value = "products", key = "'allProducts_page_' + #page + '_size_' + #size")
     /*public List<ProductDto> getAllProducts() {
         return productRepo.findAll().stream().map(this::mapToDto).toList();
     }*/
@@ -54,7 +54,7 @@ public class ProductService {
         return productRepo.findById(productId).map(this::mapToDto);
     }
 
-    @Cacheable(value = "products", key = "#categoryName")
+    @Cacheable(value = "products", key = "'category_' + #categoryName + '_page_' + #page + '_size_' + #size")
     /*public List<ProductDto> getProductsByCategoryName(String categoryName) {
         return productRepo.findByCategoryNameIgnoreCase(categoryName).stream().map(this::mapToDto).toList();
     }*/
@@ -256,7 +256,7 @@ public class ProductService {
                 .toList();
     }
 
-    @Cacheable(value = "products", key = "#brandName")
+    @Cacheable(value = "products", key = "'brand_' + #brandName + '_page_' + #page + '_size_' + #size")
    /* public List<ProductDto> getProductsByBrandName(String brandName) {
         return productRepo.findByBrandNameIgnoreCase(brandName)
                 .stream()
@@ -268,216 +268,20 @@ public class ProductService {
         return products.stream().map(this::mapToDto).toList();
     }
 
+    //  zliczanie
+    public long countProductsByBrandName(String brandName) {
+        return productRepo.countByBrandNameIgnoreCase(brandName);
+    }
+
+    public long countProductsByCategoryName(String categoryName) {
+        return productRepo.countByCategoryNameIgnoreCase(categoryName);
+    }
+
+    public long countProductsBySubCategoryName(String subCategoryName) {
+        return productRepo.countBySubCategoryNameIgnoreCase(subCategoryName);
+    }
+
+
 }
 
-/*
-package szeliga71.pl.wp.galeriawnetrz_ver1.service;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.ProductDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Product;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandsRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoryRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.ProductRepo;
-import szeliga71.pl.wp.galeriawnetrz_ver1.repository.SubCategoryRepo;
-
-import jakarta.transaction.Transactional;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import java.util.List;
-import java.util.Optional;
-
-@Service
-@Transactional
-public class ProductService {
-
-    @Autowired
-    private ProductRepo productRepo;
-    @Autowired
-    private CategoryRepo categoryRepo;
-    @Autowired
-    private BrandsRepo brandsRepo;
-    @Autowired
-    private SubCategoryRepo subCategoryRepo;
-
-    @PersistenceContext
-    private EntityManager em;
-
-
-
-public Optional<ProductDto> getProductById(Long productId) {
-    return productRepo.findById(productId).map(this::mapToDto);
-}
-
-// ----------------- PAGINACJA -----------------
-
-
-
-
-
-
-public List<ProductDto> getProductsBySubCategoryName(String subCategoryName, Integer page, Integer size) {
-    Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-    Page<Product> products = productRepo.findBySubCategoryNameIgnoreCase(subCategoryName, pageable);
-    return products.stream().map(this::mapToDto).toList();
-}
-
-
-
-public List<ProductDto> getProductsByCategoryNameAndSubCategoryName(String categoryName, String subCategoryName, Integer page, Integer size) {
-    Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-    Page<Product> products = productRepo.findByCategoryNameIgnoreCaseAndSubCategoryNameIgnoreCase(categoryName, subCategoryName, pageable);
-    return products.stream().map(this::mapToDto).toList();
-}
-
-// ----------------- BEZ PAGINACJI -----------------
-public List<ProductDto> getProductByName(String productName) {
-    return productRepo.findByNameIgnoreCase(productName).stream().map(this::mapToDto).toList();
-}
-
-// ----------------- CRUD -----------------
-@CacheEvict(value = "products", allEntries = true)
-public void deleteProduct(Long id) {
-    productRepo.deleteById(id);
-}
-
-@CacheEvict(value = "products", allEntries = true)
-public void deleteProductByName(String productName) {
-    Product existing = productRepo.findByNameIgnoreCase(productName)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-    productRepo.delete(existing);
-}
-
-@CacheEvict(value = "products", allEntries = true)
-public void deleteAllAndReset() {
-    productRepo.truncateProducts();
-}
-
-@CacheEvict(value = "products", allEntries = true)
-public ProductDto saveProduct(ProductDto dto) {
-    Product product = dto.getProductId() != null
-            ? productRepo.findById(dto.getProductId()).orElse(new Product())
-            : new Product();
-
-    product.setName(dto.getName());
-    product.setPdfUrl(dto.getPdfUrl());
-    product.setImages(dto.getImages());
-    product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
-    product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
-
-    if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
-    if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
-    if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
-
-    return mapToDto(productRepo.save(product));
-}
-
-// ----------------- MAPPER -----------------
-private ProductDto mapToDto(Product product) {
-    ProductDto dto = new ProductDto();
-    dto.setProductId(product.getProductId());
-    dto.setName(product.getName());
-    dto.setPdfUrl(product.getPdfUrl());
-    dto.setImages(product.getImages());
-    dto.setDescriptionENG(product.getDescriptionENG() != null ? List.of(product.getDescriptionENG()) : null);
-    dto.setDescriptionPL(product.getDescriptionPL() != null ? List.of(product.getDescriptionPL()) : null);
-    dto.setCategoryName(product.getCategoryName());
-    dto.setSubCategoryName(product.getSubCategoryName());
-    dto.setBrandName(product.getBrandName());
-    return dto;
-}
-
-// ------------------- METODY UPDATE / PATCH -------------------
-
-
-@CachePut(value = "products", key = "#productName")
-@CacheEvict(value = "products", key = "'allProducts'")
-public ProductDto updateProductByName(String productName, ProductDto dto) {
-    Product product = productRepo.findByNameIgnoreCase(productName)
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-    product.setName(dto.getName());
-    product.setPdfUrl(dto.getPdfUrl());
-    product.setImages(dto.getImages());
-    product.setDescriptionENG(dto.getDescriptionENG() != null ? String.join("", dto.getDescriptionENG()) : null);
-    product.setDescriptionPL(dto.getDescriptionPL() != null ? String.join("", dto.getDescriptionPL()) : null);
-
-    if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
-    if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
-    if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
-
-    return mapToDto(productRepo.save(product));
-}
-
-@CachePut(value = "products", key = "#productName")
-@CacheEvict(value = "products", key = "'allProducts'")
-public Optional<ProductDto> patchProductByName(String productName, ProductDto updates) {
-    return productRepo.findByNameIgnoreCase(productName).map(product -> {
-        if (updates.getName() != null) product.setName(updates.getName());
-        if (updates.getPdfUrl() != null) product.setPdfUrl(updates.getPdfUrl());
-        if (updates.getImages() != null) product.setImages(updates.getImages());
-        if (updates.getDescriptionENG() != null)
-            product.setDescriptionENG(String.join("", updates.getDescriptionENG()));
-        if (updates.getDescriptionPL() != null)
-            product.setDescriptionPL(String.join("", updates.getDescriptionPL()));
-
-        if (updates.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(updates.getCategoryName());
-        if (updates.getSubCategoryName() != null)
-            subCategoryRepo.findBySubCategoryNameIgnoreCase(updates.getSubCategoryName());
-        if (updates.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(updates.getBrandName());
-
-        return mapToDto(productRepo.save(product));
-    });
-}
-
-@CachePut(value = "products", key = "#id")
-@CacheEvict(value = "products", key = "'allProducts'")
-public Optional<ProductDto> patchProduct(Long id, ProductDto updates) {
-    return productRepo.findById(id).map(existing -> {
-        if (updates.getName() != null) existing.setName(updates.getName());
-        if (updates.getPdfUrl() != null) existing.setPdfUrl(updates.getPdfUrl());
-        if (updates.getImages() != null) existing.setImages(updates.getImages());
-        if (updates.getDescriptionENG() != null)
-            existing.setDescriptionENG(String.join("", updates.getDescriptionENG()));
-        if (updates.getDescriptionPL() != null)
-            existing.setDescriptionPL(String.join("", updates.getDescriptionPL()));
-        if (updates.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(updates.getCategoryName());
-        if (updates.getSubCategoryName() != null)
-            subCategoryRepo.findBySubCategoryNameIgnoreCase(updates.getSubCategoryName());
-        if (updates.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(updates.getBrandName());
-
-        Product saved = productRepo.save(existing);
-        return mapToDto(saved);
-    });
-}
-
-@CachePut(value = "products", key = "#id")
-@CacheEvict(value = "products", key = "'allProducts'")
-public Optional<ProductDto> updateProduct(Long id, ProductDto dto) {
-
-    return productRepo.findById(id).map(existing -> {
-        if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getPdfUrl() != null) existing.setPdfUrl(dto.getPdfUrl());
-        if (dto.getImages() != null) existing.setImages(dto.getImages());
-        if (dto.getDescriptionENG() != null) existing.setDescriptionENG(String.join("", dto.getDescriptionENG()));
-        if (dto.getDescriptionPL() != null) existing.setDescriptionPL(String.join("", dto.getDescriptionPL()));
-        if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
-        if (dto.getSubCategoryName() != null)
-            subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
-        if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
-
-
-        Product saved = productRepo.save(existing);
-        return mapToDto(saved);
-    });
-}
-}
-
- */
 
