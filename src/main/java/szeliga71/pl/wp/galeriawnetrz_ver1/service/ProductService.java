@@ -46,12 +46,22 @@ public class ProductService {
         return productRepo.findById(productId).map(this::mapToDto);
     }
 
-    @Cacheable(value = "products", key = "#categoryName")
+    // Normalize cache keys to avoid separate entries for e.g. "Doors" vs "doors".
+    // Also avoid caching empty results (can happen during initial import/boot).
+    @Cacheable(
+            value = "products",
+            key = "T(java.util.Objects).toString(#categoryName,'').trim().toLowerCase()",
+            unless = "#result == null || #result.isEmpty()"
+    )
     public List<ProductDto> getProductsByCategoryName(String categoryName) {
         return productRepo.findByCategoryNameIgnoreCase(categoryName).stream().map(this::mapToDto).toList();
     }
 
-    @Cacheable(value = "products", key = "#subCategoryName")
+    @Cacheable(
+            value = "products",
+            key = "T(java.util.Objects).toString(#subCategoryName,'').trim().toLowerCase()",
+            unless = "#result == null || #result.isEmpty()"
+    )
     public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
         return productRepo.findBySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
     }
