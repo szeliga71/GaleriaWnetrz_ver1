@@ -21,36 +21,32 @@ public class ProductController {
     @Autowired
     ProductService productService;
 
-
-    /*@GetMapping("/category/id/{categoryId}")
-    public List<ProductDto> getProductsByCategoryId(@PathVariable Long categoryId) {
-        return productService.getProductsByCategoryId(categoryId);
-    }*/
-    @GetMapping("/category/name/{name}")
-    public List<ProductDto> getProductsByCategoryName(@PathVariable String name) {
-        return productService.getProductsByCategoryName(name);
+    @GetMapping("/category/name/{categoryName}")
+    public List<ProductDto> getProductsByCategoryName(
+            @PathVariable String categoryName,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return productService.getProductsByCategoryName(categoryName, page, size);
     }
 
-   /* @GetMapping("/subcategory/id/{subCategoryId}")
-    public List<ProductDto> getProductsBySubCategoryId(@PathVariable Long subCategoryId) {
-        return productService.getProductsBySubCategoryId(subCategoryId);
-    }*/
     @GetMapping("/subcategory/name/{subCategoryName}")
     public List<ProductDto> getProductsBySubCategoryName(@PathVariable("subCategoryName") String subCategoryName) {
         return productService.getProductsBySubCategoryName(subCategoryName);
     }
-    /*@GetMapping("/brand/id/{brandId}")
-    public List<ProductDto> getProductsByBrandId(@PathVariable Long brandId) {
-        return productService.getProductsByBrandId(brandId);
-    }*/
+
     @GetMapping("/brand/name/{brandName}")
-   public List<ProductDto> getProductsByBrandName(@PathVariable("brandName") String brandName) {
-       return productService.getProductsByBrandName(brandName);
-   }
+    public List<ProductDto> getProductsByBrandName(
+            @PathVariable String brandName,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return productService.getProductsByBrandName(brandName, page, size);
+    }
 
     @GetMapping("/all")
-    public List<ProductDto> getAllProducts() {
-        return productService.getAllProducts();
+    public List<ProductDto> getAllProducts(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        return productService.getAllProducts(page, size);
     }
     @GetMapping("/id/{id}")
     public Optional<ProductDto> getProductById(@PathVariable Long id) {
@@ -68,4 +64,24 @@ public class ProductController {
         List<ProductDto> products = productService.getProductsByCategoryNameAndSubCategoryName(categoryName, subCategoryName);
         return ResponseEntity.ok(products);
     }
+    //  zliczanie
+    // Liczba produktów dla brandu
+    @GetMapping("/brand/name/{brandName}/count")
+    public long countProductsByBrandName(@PathVariable String brandName) {
+        return productService.countProductsByBrandName(brandName);
+    }
+
+    // Liczba produktów dla kategorii
+    @GetMapping("/category/name/{categoryName}/count")
+    public long countProductsByCategoryName(@PathVariable String categoryName) {
+        return productService.countProductsByCategoryName(categoryName);
+    }
+
+    // Liczba produktów dla podkategorii
+    @GetMapping("/subcategory/name/{subCategoryName}/count")
+    public long countProductsBySubCategoryName(@PathVariable String subCategoryName) {
+        return productService.countProductsBySubCategoryName(subCategoryName);
+    }
+
 }
+
