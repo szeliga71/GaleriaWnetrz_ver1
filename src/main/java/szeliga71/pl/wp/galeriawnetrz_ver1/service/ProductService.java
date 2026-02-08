@@ -64,7 +64,11 @@ public class ProductService {
         return products.stream().map(this::mapToDto).toList();
     }
 
-    @Cacheable(value = "products", key = "#subCategoryName")
+    @Cacheable(
+            value = "products",
+            key = "T(java.util.Objects).toString(#subCategoryName,'').trim().toLowerCase()",
+            unless = "#result == null || #result.isEmpty()"
+    )
     public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
         return productRepo.findBySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
     }
