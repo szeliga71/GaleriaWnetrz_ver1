@@ -13,35 +13,41 @@ public class Product {
     @Column(name = "product_id")
     private Long productId;
 
-    @Column(name = "name",unique = true)
+    @Column(unique = true, nullable = false)
     private String name;
 
-    //@Column(columnDefinition = "TEXT")
-    private String brandName;
-
-    @Column(columnDefinition = "TEXT", name = "descriptionpl")
+    @Column(columnDefinition = "TEXT")
     private String descriptionPL;
 
-    @Column(columnDefinition = "TEXT", name = "descriptioneng")
+    @Column(columnDefinition = "TEXT")
     private String descriptionENG;
-
-    //@Column(columnDefinition = "TEXT")
-    private String categoryName;
-
-    //@Column(columnDefinition = "TEXT")
-    private String subCategoryName;
 
     @Column(columnDefinition = "TEXT")
     private String pdfUrl;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    // 🔥 RELACJE (ZAMIAST STRINGÓW)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brands brand;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subcategory_id")
+    private SubCategory subCategory;
+
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
             name = "product_images",
             joinColumns = @JoinColumn(name = "product_id")
     )
-
-    @Column(columnDefinition = "TEXT",name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private List<String> images;
+
+    // gettery/settery
 
     public Long getProductId() {
         return productId;
@@ -51,44 +57,12 @@ public class Product {
         this.productId = productId;
     }
 
-    public List<String> getImages() {
-        return images;
+    public String getName() {
+        return name;
     }
 
-    public void setImages(List<String> images) {
-        this.images = images;
-    }
-
-    public String getPdfUrl() {
-        return pdfUrl;
-    }
-
-    public void setPdfUrl(String pdfUrl) {
-        this.pdfUrl = pdfUrl;
-    }
-
-    public String getSubCategoryName() {
-        return subCategoryName;
-    }
-
-    public void setSubCategoryName(String subCategoryName) {
-        this.subCategoryName = subCategoryName;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getDescriptionENG() {
-        return descriptionENG;
-    }
-
-    public void setDescriptionENG(String descriptionENG) {
-        this.descriptionENG = descriptionENG;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescriptionPL() {
@@ -99,19 +73,52 @@ public class Product {
         this.descriptionPL = descriptionPL;
     }
 
-    public String getBrandName() {
-        return brandName;
+    public String getDescriptionENG() {
+        return descriptionENG;
     }
 
-    public void setBrandName(String brandName) {
-        this.brandName = brandName;
+    public void setDescriptionENG(String descriptionENG) {
+        this.descriptionENG = descriptionENG;
     }
 
-    public String getName() {
-        return name;
+    public String getPdfUrl() {
+        return pdfUrl;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
+
+    public Brands getBrand() {
+        return brand;
+    }
+
+    public void setBrand(Brands brand) {
+        this.brand = brand;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public SubCategory getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(SubCategory subCategory) {
+        this.subCategory = subCategory;
+    }
+
+    public List<String> getImages() {
+        return images;
+    }
+
+    public void setImages(List<String> images) {
+        this.images = images;
     }
 }
+

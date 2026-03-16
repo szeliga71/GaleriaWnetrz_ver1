@@ -101,9 +101,9 @@ public class ProductImportService {
                 product.setDescriptionENG(descEng);
                 product.setDescriptionPL(descPl);
                 product.setPdfUrl(pdf);
-                product.setBrandName(brand.getBrandName());
-                product.setCategoryName(category.getCategoryName());
-                product.setSubCategoryName(subCategory.getSubCategoryName());
+                product.setBrand(brand);
+                product.setCategory(category);
+                product.setSubCategory(subCategory);
 
                 if (!imagesCsv.isEmpty()) {
                     product.setImages(Arrays.asList(imagesCsv.split(",")));

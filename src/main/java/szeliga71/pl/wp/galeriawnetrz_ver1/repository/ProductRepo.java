@@ -19,27 +19,33 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
     List<Product> findByNameIgnoreCaseContaining(String query);
 
     // Szukanie po nazwie kategorii
-    List<Product> findByCategoryNameIgnoreCase(String categoryName);
-    Page<Product> findByCategoryNameIgnoreCase(String categoryName, Pageable pageable);
+    List<Product> findByCategoryCategoryNameIgnoreCase(String categoryName);
+    Page<Product> findByCategoryCategoryNameIgnoreCase(String categoryName, Pageable pageable);
     // Szukanie po nazwie podkategorii
-    List<Product> findBySubCategoryNameIgnoreCase(String subCategoryName);
+    List<Product> findBySubCategorySubCategoryNameIgnoreCase(String subCategoryName);
 
     // Szukanie po nazwie brandu
-    List<Product> findByBrandNameIgnoreCase(String brandName);
-    Page<Product> findByBrandNameIgnoreCase(String brandName, Pageable pageable);
+    List<Product> findByBrandBrandNameIgnoreCase(String brandName);
+    Page<Product> findByBrand_BrandNameIgnoreCase(String brandName,Pageable pageable);
     // Szukanie po kategorii i podkategorii razem
-    List<Product> findByCategoryNameIgnoreCaseAndSubCategoryNameIgnoreCase(String categoryName, String subCategoryName);
+    List<Product> findByCategoryCategoryNameIgnoreCaseAndSubCategorySubCategoryNameIgnoreCase(String categoryName, String subCategoryName);
 
 
     // zliczanie
+    long countBySubCategory_SubCategoryNameIgnoreCase(String name);
+
+    long countByCategory_CategoryNameIgnoreCase(String name);
+
+    long countByBrand_BrandNameIgnoreCase(String name);
+
     // Liczba produktów dla brandu
-    long countByBrandNameIgnoreCase(String brandName);
+    //long countByBrandNameIgnoreCase(String brandName);
 
     // Liczba produktów dla kategorii
-    long countByCategoryNameIgnoreCase(String categoryName);
+    //long countByCategoryNameIgnoreCase(String categoryName);
 
     // Liczba produktów dla podkategorii
-    long countBySubCategoryNameIgnoreCase(String subCategoryName);
+    //long countBySubCategoryNameIgnoreCase(String subCategoryName);
 
 
     @Modifying

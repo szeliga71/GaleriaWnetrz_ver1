@@ -36,17 +36,17 @@ public class QueryService {
     public QueryResultsDto search(String query) {
         // Brand -> Product
         List<Product> brandResults = brandRepo.findByBrandNameIgnoreCaseContaining(query).stream()
-                .flatMap(b -> productRepo.findByBrandNameIgnoreCase(b.getBrandName()).stream())
+                .flatMap(b -> productRepo.findByBrandBrandNameIgnoreCase(b.getBrandName()).stream())
                 .toList();
 
         // Category -> Product
         List<Product> categoryResults = categoryRepo.findByCategoryNameIgnoreCaseContaining(query).stream()
-                .flatMap(c -> productRepo.findByCategoryNameIgnoreCase(c.getCategoryName()).stream())
+                .flatMap(c -> productRepo.findByCategoryCategoryNameIgnoreCase(c.getCategoryName()).stream())
                 .toList();
 
         // SubCategory -> Product
         List<Product> subCategoryResults = subCategoryRepo.findBySubCategoryNameIgnoreCaseContaining(query).stream()
-                .flatMap(sc -> productRepo.findBySubCategoryNameIgnoreCase(sc.getSubCategoryName()).stream())
+                .flatMap(sc -> productRepo.findBySubCategorySubCategoryNameIgnoreCase(sc.getSubCategoryName()).stream())
                 .toList();
 
         // Product name directly

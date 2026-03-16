@@ -15,14 +15,31 @@ public class ProductDto {
     private String name;
     private String brandName;
 
-    private List<String> descriptionENG;
-    private List<String> descriptionPL;
+    private String descriptionPL;
+    private String descriptionENG;
+    //private List<String> descriptionENG;
+    //private List<String> descriptionPL;
     private String categoryName;
     private String subCategoryName;
     private String pdfUrl;
     private List<String> images;
     private String coverImageUrl;
 
+    public String getDescriptionPL() {
+        return descriptionPL;
+    }
+
+    public void setDescriptionPL(String descriptionPL) {
+        this.descriptionPL = descriptionPL;
+    }
+
+    public String getDescriptionENG() {
+        return descriptionENG;
+    }
+
+    public void setDescriptionENG(String descriptionENG) {
+        this.descriptionENG = descriptionENG;
+    }
 
     public Long getProductId() {
         return productId;
@@ -40,7 +57,7 @@ public class ProductDto {
         this.name = name;
     }
 
-    public List<String> getDescriptionENG() {
+   /* public List<String> getDescriptionENG() {
         return descriptionENG;
     }
 
@@ -54,7 +71,7 @@ public class ProductDto {
 
     public void setDescriptionPL(List<String> descriptionPL) {
         this.descriptionPL = descriptionPL;
-    }
+    }*/
 
 
 

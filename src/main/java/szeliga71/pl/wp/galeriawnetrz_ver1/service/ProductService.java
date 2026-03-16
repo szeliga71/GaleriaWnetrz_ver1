@@ -60,13 +60,13 @@ public class ProductService {
     }*/
     public List<ProductDto> getProductsByCategoryName(String categoryName, Integer page, Integer size) {
         Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-        Page<Product> products = productRepo.findByCategoryNameIgnoreCase(categoryName, pageable);
+        Page<Product> products = productRepo.findByCategoryCategoryNameIgnoreCase(categoryName,pageable);
         return products.stream().map(this::mapToDto).toList();
     }
 
     @Cacheable(value = "products", key = "#subCategoryName")
     public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
-        return productRepo.findBySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
+        return productRepo.findBySubCategorySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
     }
 
     @CacheEvict(value = "products", allEntries = true)
@@ -97,7 +97,7 @@ public class ProductService {
 
     //===================================================================================
 
-    @CacheEvict(value = "products", allEntries = true)
+    /*@CacheEvict(value = "products", allEntries = true)
     public ProductDto saveProduct(ProductDto dto) {
         Product product = dto.getProductId() != null
                 ? productRepo.findById(dto.getProductId())
@@ -125,9 +125,9 @@ public class ProductService {
         if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
 
         return mapToDto(productRepo.save(product));
-    }
+    }*/
 
-    private ProductDto mapToDto(Product product) {
+   /* private ProductDto mapToDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setProductId(product.getProductId());
         dto.setName(product.getName());
@@ -149,11 +149,109 @@ public class ProductService {
         if (product.getSubCategoryName() != null) dto.setSubCategoryName(product.getSubCategoryName());
         if (product.getBrandName() != null) {
             dto.setBrandName(product.getBrandName());
-            dto.setBrandName(product.getBrandName());
         }
         return dto;
+    }*/
+@Transactional
+    @CacheEvict(value = "products", allEntries = true)
+    public ProductDto saveProduct(ProductDto dto) {
+
+        Product product = dto.getProductId() != null
+                ? productRepo.findById(dto.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getProductId()))
+                : new Product();
+
+        product.setName(dto.getName());
+        product.setPdfUrl(dto.getPdfUrl());
+        product.setImages(dto.getImages());
+
+        product.setDescriptionENG(convertText(dto.getDescriptionENG()));
+        product.setDescriptionPL(convertText(dto.getDescriptionPL()));
+
+        if (dto.getCategoryName() != null) {
+            product.setCategory(
+                    categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName())
+                            .orElseThrow(() -> new RuntimeException("Category not found: " + dto.getCategoryName()))
+            );
+        }
+
+        if (dto.getSubCategoryName() != null) {
+            product.setSubCategory(
+                    subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName())
+                            .orElseThrow(() -> new RuntimeException("SubCategory not found: " + dto.getSubCategoryName()))
+            );
+        }
+
+        if (dto.getBrandName() != null) {
+            product.setBrand(
+                    brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName())
+                            .orElseThrow(() -> new RuntimeException("Brand not found: " + dto.getBrandName()))
+            );
+        }
+
+        Product saved = productRepo.save(product);
+
+        return mapToDto(saved);
     }
 
+
+
+
+    private String convertText(String text) {
+        if (text == null) {
+            return null;
+        }
+
+        return text
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
+    }
+
+
+    private ProductDto mapToDto(Product product) {
+
+        ProductDto dto = new ProductDto();
+
+        dto.setProductId(product.getProductId());
+        dto.setName(product.getName());
+        dto.setPdfUrl(product.getPdfUrl());
+        dto.setImages(product.getImages());
+
+        // opis ENG
+        if (product.getDescriptionENG() != null) {
+            dto.setDescriptionENG(
+                    product.getDescriptionENG()
+                            .replace("\\n", "\n")
+                            .replace("\\r", "\r")
+            );
+        }
+
+        // opis PL
+        if (product.getDescriptionPL() != null) {
+            dto.setDescriptionPL(
+                    product.getDescriptionPL()
+                            .replace("\\n", "\n")
+                            .replace("\\r", "\r")
+            );
+        }
+
+        // BRAND
+        if (product.getBrand() != null) {
+            dto.setBrandName(product.getBrand().getBrandName());
+        }
+
+        // CATEGORY
+        if (product.getCategory() != null) {
+            dto.setCategoryName(product.getCategory().getCategoryName());
+        }
+
+        // SUBCATEGORY
+        if (product.getSubCategory() != null) {
+            dto.setSubCategoryName(product.getSubCategory().getSubCategoryName());
+        }
+
+        return dto;
+    }
 
 
     // ------------------- METODY UPDATE / PATCH -------------------
@@ -250,7 +348,7 @@ public class ProductService {
     }
 
     public List<ProductDto> getProductsByCategoryNameAndSubCategoryName(String categoryName, String subCategoryName) {
-        return productRepo.findByCategoryNameIgnoreCaseAndSubCategoryNameIgnoreCase(categoryName, subCategoryName)
+        return productRepo.findByCategoryCategoryNameIgnoreCaseAndSubCategorySubCategoryNameIgnoreCase(categoryName, subCategoryName)
                 .stream()
                 .map(this::mapToDto)
                 .toList();
@@ -264,21 +362,21 @@ public class ProductService {
                 .toList();
     }*/public List<ProductDto> getProductsByBrandName(String brandName, Integer page, Integer size) {
         Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-        Page<Product> products = productRepo.findByBrandNameIgnoreCase(brandName, pageable);
+        Page<Product> products = productRepo.findByBrand_BrandNameIgnoreCase(brandName,pageable);
         return products.stream().map(this::mapToDto).toList();
     }
 
     //  zliczanie
     public long countProductsByBrandName(String brandName) {
-        return productRepo.countByBrandNameIgnoreCase(brandName);
+        return productRepo.countByBrand_BrandNameIgnoreCase(brandName);
     }
 
     public long countProductsByCategoryName(String categoryName) {
-        return productRepo.countByCategoryNameIgnoreCase(categoryName);
+        return productRepo.countByCategory_CategoryNameIgnoreCase(categoryName);
     }
 
     public long countProductsBySubCategoryName(String subCategoryName) {
-        return productRepo.countBySubCategoryNameIgnoreCase(subCategoryName);
+        return productRepo.countBySubCategory_SubCategoryNameIgnoreCase(subCategoryName);
     }
 
 
