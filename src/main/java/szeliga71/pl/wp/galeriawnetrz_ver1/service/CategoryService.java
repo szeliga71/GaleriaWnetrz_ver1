@@ -18,9 +18,6 @@ public class CategoryService {
     @Autowired
    CategoryRepo categoryRepo;
 
-   /* public CategoryService(CategoryRepo categoryRepo) {
-        this.categoryRepo = categoryRepo;
-    }*/
 
     public Optional<Category> getCategoryByName(String categoryName){
         return categoryRepo.findByCategoryNameIgnoreCase(categoryName);
@@ -144,6 +141,4 @@ public class CategoryService {
         categoryRepo.delete(existing);
     }
 }
-
-
 }

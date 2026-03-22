@@ -21,11 +21,6 @@ public class SubCategoryService {
     @Autowired
     CategoryRepo categoryRepo;
 
-    /*public SubCategoryService(SubCategoryRepo subCategoryRepo, CategoryRepo categoryRepo) {
-        this.subCategoryRepo = subCategoryRepo;
-        this.categoryRepo = categoryRepo;
-    }*/
-
     public void deleteAllSubCategoryAndReset() {
         subCategoryRepo.truncateSubCategory();
     }

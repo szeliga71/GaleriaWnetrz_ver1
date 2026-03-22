@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import szeliga71.pl.wp.galeriawnetrz_ver1.dto.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.service.*;
 
@@ -64,7 +63,7 @@ public class AdminController {
     }
 
 
-    @PatchMapping("/productId/{id}")
+    /*@PatchMapping("/productId/{id}")
     public ResponseEntity<ProductDto> patchProduct(
             @PathVariable Long id,
             @RequestBody ProductDto updates) {
@@ -72,8 +71,8 @@ public class AdminController {
         return productService.patchProduct(id, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-    @PutMapping("/product/by-name/{productName}")
+    }*/
+   /* @PutMapping("/product/by-name/{productName}")
     public ResponseEntity<ProductDto> updateProductByName(
             @PathVariable String productName,
             @RequestBody ProductDto dto) {
@@ -83,16 +82,16 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @PatchMapping("/product/by-name/{productName}")
+    /*@PatchMapping("/product/by-name/{productName}")
     public ResponseEntity<ProductDto> patchProductByName(
             @PathVariable String productName,
             @RequestBody ProductDto updates) {
         return productService.patchProductByName(productName, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
 
     @DeleteMapping("/product/{id}")
@@ -100,7 +99,7 @@ public class AdminController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-    @DeleteMapping("/product/by-name/{productName}")
+    /*@DeleteMapping("/product/by-name/{productName}")
     public ResponseEntity<Void> deleteProductByName(@PathVariable String productName) {
         try {
             productService.deleteProductByName(productName);
@@ -108,7 +107,7 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
     @DeleteMapping("/products/reset")
     public ResponseEntity<Void> deleteAllProductsAndReset() {
         productService.deleteAllAndReset();
@@ -138,7 +137,7 @@ public class AdminController {
         }
     }
 
-    @PatchMapping("/brand/{id}")
+   /* @PatchMapping("/brand/{id}")
     public ResponseEntity<BrandDto> patchBrand(
             @PathVariable Long id,
             @RequestBody BrandCreateDto updates) {
@@ -146,9 +145,9 @@ public class AdminController {
         return brandService.patchBrand(id, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
-    @PutMapping("/brand/by-name/{brandName}")
+   /* @PutMapping("/brand/by-name/{brandName}")
     public ResponseEntity<BrandDto> updateBrandByName(
             @PathVariable String brandName,
             @RequestBody BrandCreateDto dto) {
@@ -158,16 +157,16 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @PatchMapping("/brand/by-name/{brandName}")
+   /* @PatchMapping("/brand/by-name/{brandName}")
     public ResponseEntity<BrandDto> patchBrandByName(
             @PathVariable String brandName,
             @RequestBody BrandCreateDto updates) {
         return brandService.patchBrandByName(brandName, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
     @DeleteMapping("/brands/reset")
     public ResponseEntity<Void> deleteAllBrandsAndReset() {
         brandService.deleteAllAndReset();
@@ -178,7 +177,7 @@ public class AdminController {
         brandService.deleteBrand(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-    @DeleteMapping("/brand/by-name/{brandName}")
+    /*@DeleteMapping("/brand/by-name/{brandName}")
     public ResponseEntity<Void> deleteBrandByName(@PathVariable String brandName) {
         try {
             brandService.deleteBrandByName(brandName);
@@ -186,7 +185,7 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
 
     //================================CATEGORIES================================================
@@ -201,7 +200,7 @@ public class AdminController {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build(); // zwraca status 204
     }
-    @DeleteMapping("/category/by-name/{categoryName}")
+   /* @DeleteMapping("/category/by-name/{categoryName}")
     public ResponseEntity<Void> deleteCategoryByName(@PathVariable String categoryName) {
         categoryService.deleteCategoryByCategoryName(categoryName);
         return ResponseEntity.noContent().build(); // zwraca status 204
@@ -211,7 +210,7 @@ public class AdminController {
     public ResponseEntity<Void> deleteAllCategoryReset() {
         categoryService.deleteAllAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
-    }
+    }*/
 
 
     @PutMapping("/category/{id}")
@@ -227,7 +226,7 @@ public class AdminController {
         }
     }
 
-    @PatchMapping("/category/{id}")
+    /*@PatchMapping("/category/{id}")
     public ResponseEntity<CategoryDto> patchCategories(
             @PathVariable Long id,
             @RequestBody CategoryDto updates) {
@@ -235,9 +234,9 @@ public class AdminController {
         return categoryService.patchCategory(id, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
-    @PutMapping("/category/by-name/{categoryName}")
+   /* @PutMapping("/category/by-name/{categoryName}")
     public ResponseEntity<CategoryDto> updateCategoryByName(
             @PathVariable String categoryName,
             @RequestBody CategoryDto dto) {
@@ -248,16 +247,16 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @PatchMapping("/category/by-name/{categoryName}")
+   /* @PatchMapping("/category/by-name/{categoryName}")
     public ResponseEntity<CategoryDto> patchCategoryByName(
             @PathVariable String categoryName,
             @RequestBody CategoryDto updates) {
         return categoryService.patchCategoryByName(categoryName, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
 
 //========================SUBCATEGORY===========================================
@@ -272,11 +271,11 @@ public class AdminController {
         subCategoryService.deleteAllSubCategoryAndReset();
         return ResponseEntity.noContent().build(); // HTTP 204
     }
-    @DeleteMapping("/subCategory/by-name/{subCategoryName}")
+    /*@DeleteMapping("/subCategory/by-name/{subCategoryName}")
     public ResponseEntity<Void> deleteSubCategoryByName(@PathVariable String subCategoryName) {
         subCategoryService.deleteSubCategoryBySubCategoryName(subCategoryName);
         return ResponseEntity.noContent().build(); // zwraca status 204
-    }
+    }*/
 
 
     @PostMapping("/subcategory")
@@ -304,7 +303,7 @@ public class AdminController {
         }
     }
 
-    @PatchMapping("/subCategory/{id}")
+   /* @PatchMapping("/subCategory/{id}")
     public ResponseEntity<SubCategoryDto> patchSubCategories(
             @PathVariable Long id,
             @RequestBody SubCategoryDto updates) {
@@ -312,9 +311,9 @@ public class AdminController {
         return subCategoryService.patchSubCategory(id, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
-    @PutMapping("/subCategory/by-name/{subCategoryName}")
+   /* @PutMapping("/subCategory/by-name/{subCategoryName}")
     public ResponseEntity<SubCategoryDto> updateSubCategoryByName(
             @PathVariable String subCategoryName,
             @RequestBody SubCategoryDto dto) {
@@ -325,16 +324,16 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+    }*/
 
-    @PatchMapping("/subCategory/by-name/{subCategoryName}")
+  /*  @PatchMapping("/subCategory/by-name/{subCategoryName}")
     public ResponseEntity<SubCategoryDto> patchSubCategoryByName(
             @PathVariable String subCategoryName,
             @RequestBody SubCategoryDto updates) {
         return subCategoryService.patchSubCategoryByName(subCategoryName, updates)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
+    }*/
 
 
 }

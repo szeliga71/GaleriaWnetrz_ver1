@@ -17,8 +17,6 @@ public class ProductDto {
 
     private String descriptionPL;
     private String descriptionENG;
-    //private List<String> descriptionENG;
-    //private List<String> descriptionPL;
     private String categoryName;
     private String subCategoryName;
     private String pdfUrl;
@@ -56,22 +54,6 @@ public class ProductDto {
     public void setName(String name) {
         this.name = name;
     }
-
-   /* public List<String> getDescriptionENG() {
-        return descriptionENG;
-    }
-
-    public void setDescriptionENG(List<String> descriptionENG) {
-        this.descriptionENG = descriptionENG;
-    }
-
-    public List<String> getDescriptionPL() {
-        return descriptionPL;
-    }
-
-    public void setDescriptionPL(List<String> descriptionPL) {
-        this.descriptionPL = descriptionPL;
-    }*/
 
 
 

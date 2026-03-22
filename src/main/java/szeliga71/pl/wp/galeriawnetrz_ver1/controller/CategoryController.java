@@ -1,6 +1,5 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoryRepo;

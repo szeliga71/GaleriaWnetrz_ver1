@@ -57,10 +57,5 @@ public class PostsController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    @PatchMapping("/update/{id}")
-    public ResponseEntity<PostsDto> patchPost(@PathVariable UUID id, @RequestBody PostsDto dto) {
-        return postsService.patchPost(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+
 }

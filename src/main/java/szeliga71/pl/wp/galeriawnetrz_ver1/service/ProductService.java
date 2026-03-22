@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
@@ -40,13 +41,67 @@ public class ProductService {
     private EntityManager em;
 
 
-    @Cacheable(value = "products", key = "'allProducts_page_' + #page + '_size_' + #size")
-    /*public List<ProductDto> getAllProducts() {
-        return productRepo.findAll().stream().map(this::mapToDto).toList();
-    }*/
-    public List<ProductDto> getAllProducts(Integer page, Integer size) {
-        Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
+    @Cacheable(value = "products",
+            key = "'allProducts_page_' + #page + '_size_' + #size + '_sort_' + #sort")
+    public List<ProductDto> getAllProducts(Integer page, Integer size, String sort) {
+
+        Sort sortObj = createSort(sort); // wydzielamy tylko sortowanie
+
+        // 🔥 brak page/size → zwracamy wszystkie rekordy
+        if (page == null || size == null) {
+            return productRepo.findAll(sortObj)
+                    .stream()
+                    .map(this::mapToDto)
+                    .toList();
+        }
+
+        Pageable pageable = createPageable(page, size, sortObj);
         Page<Product> products = productRepo.findAll(pageable);
+
+        return products.stream().map(this::mapToDto).toList();
+    }
+
+    private Sort createSort(String sort) {
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        if (sort != null && !sort.isBlank()) {
+            switch (sort.toLowerCase()) {
+                case "az" -> direction = Sort.Direction.ASC;
+                case "za" -> direction = Sort.Direction.DESC;
+                default -> throw new IllegalArgumentException(
+                        "Invalid sort value. Use 'az' or 'za'"
+                );
+            }
+        }
+
+        return Sort.by(direction, "name");
+    }
+    private Pageable createPageable(Integer page, Integer size, String sort) {
+
+        // domyślnie: sortowanie A → Z
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        if (sort != null && !sort.isBlank()) {
+            switch (sort.toLowerCase()) {
+                case "az" -> direction = Sort.Direction.ASC;
+                case "za" -> direction = Sort.Direction.DESC;
+                default -> throw new IllegalArgumentException(
+                        "Invalid sort value. Use 'az' or 'za'"
+                );
+            }
+        }
+
+        return PageRequest.of(page, size, Sort.by(direction, "name"));
+    }
+    //===========przeciazona ===========================
+    private Pageable createPageable(Integer page, Integer size, Sort sort) {
+        return PageRequest.of(page, size, sort);
+    }
+    //===========przeciazona ===========================
+    @Cacheable(value = "products", key = "'brand_' + #brandName + '_page_' + #page + '_size_' + #size")
+    public List<ProductDto> getProductsByBrandName(String brandName, Integer page, Integer size, String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        Page<Product> products = productRepo.findByBrand_BrandNameIgnoreCase(brandName, pageable);
         return products.stream().map(this::mapToDto).toList();
     }
 
@@ -55,18 +110,16 @@ public class ProductService {
     }
 
     @Cacheable(value = "products", key = "'category_' + #categoryName + '_page_' + #page + '_size_' + #size")
-    /*public List<ProductDto> getProductsByCategoryName(String categoryName) {
-        return productRepo.findByCategoryNameIgnoreCase(categoryName).stream().map(this::mapToDto).toList();
-    }*/
-    public List<ProductDto> getProductsByCategoryName(String categoryName, Integer page, Integer size) {
-        Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-        Page<Product> products = productRepo.findByCategoryCategoryNameIgnoreCase(categoryName,pageable);
+    public List<ProductDto> getProductsByCategoryName(String categoryName, Integer page, Integer size, String sort) {
+        Pageable pageable = createPageable(page, size, sort);
+        Page<Product> products = productRepo.findByCategoryCategoryNameIgnoreCase(categoryName, pageable);
         return products.stream().map(this::mapToDto).toList();
     }
 
     @Cacheable(value = "products", key = "#subCategoryName")
     public List<ProductDto> getProductsBySubCategoryName(String subCategoryName) {
-        return productRepo.findBySubCategorySubCategoryNameIgnoreCase(subCategoryName).stream().map(this::mapToDto).toList();
+        return productRepo.findBySubCategorySubCategoryNameIgnoreCase(subCategoryName)
+                .stream().map(this::mapToDto).toList();
     }
 
     @CacheEvict(value = "products", allEntries = true)
@@ -95,63 +148,8 @@ public class ProductService {
         return parts;
     }
 
-    //===================================================================================
 
-    /*@CacheEvict(value = "products", allEntries = true)
-    public ProductDto saveProduct(ProductDto dto) {
-        Product product = dto.getProductId() != null
-                ? productRepo.findById(dto.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getProductId()))
-                : new Product();
 
-        product.setName(dto.getName());
-        product.setPdfUrl(dto.getPdfUrl());
-        product.setImages(dto.getImages());
-
-        product.setDescriptionENG(dto.getDescriptionENG() != null
-                ? dto.getDescriptionENG().stream()
-                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
-                .reduce("", String::concat)
-                : null);
-
-        product.setDescriptionPL(dto.getDescriptionPL() != null
-                ? dto.getDescriptionPL().stream()
-                .map(s -> s.replace("\n", "\\n").replace("\r", "\\r"))
-                .reduce("", String::concat)
-                : null);
-
-        if (dto.getCategoryName() != null) categoryRepo.findByCategoryNameIgnoreCase(dto.getCategoryName());
-        if (dto.getSubCategoryName() != null) subCategoryRepo.findBySubCategoryNameIgnoreCase(dto.getSubCategoryName());
-        if (dto.getBrandName() != null) brandsRepo.findByBrandNameIgnoreCase(dto.getBrandName());
-
-        return mapToDto(productRepo.save(product));
-    }*/
-
-   /* private ProductDto mapToDto(Product product) {
-        ProductDto dto = new ProductDto();
-        dto.setProductId(product.getProductId());
-        dto.setName(product.getName());
-        dto.setPdfUrl(product.getPdfUrl());
-        dto.setImages(product.getImages());
-
-        // Przy odczycie konwertujemy \\n i \\r z powrotem na normalne znaki nowej linii
-        dto.setDescriptionENG(splitText(
-                product.getDescriptionENG() != null
-                        ? product.getDescriptionENG().replace("\\n", "\n").replace("\\r", "\r")
-                        : null, 100));
-
-        dto.setDescriptionPL(splitText(
-                product.getDescriptionPL() != null
-                        ? product.getDescriptionPL().replace("\\n", "\n").replace("\\r", "\r")
-                        : null, 100));
-
-        if (product.getCategoryName() != null) dto.setCategoryName(product.getCategoryName());
-        if (product.getSubCategoryName() != null) dto.setSubCategoryName(product.getSubCategoryName());
-        if (product.getBrandName() != null) {
-            dto.setBrandName(product.getBrandName());
-        }
-        return dto;
-    }*/
 @Transactional
     @CacheEvict(value = "products", allEntries = true)
     public ProductDto saveProduct(ProductDto dto) {
@@ -354,17 +352,8 @@ public class ProductService {
                 .toList();
     }
 
-    @Cacheable(value = "products", key = "'brand_' + #brandName + '_page_' + #page + '_size_' + #size")
-   /* public List<ProductDto> getProductsByBrandName(String brandName) {
-        return productRepo.findByBrandNameIgnoreCase(brandName)
-                .stream()
-                .map(this::mapToDto)
-                .toList();
-    }*/public List<ProductDto> getProductsByBrandName(String brandName, Integer page, Integer size) {
-        Pageable pageable = page != null && size != null ? PageRequest.of(page, size) : Pageable.unpaged();
-        Page<Product> products = productRepo.findByBrand_BrandNameIgnoreCase(brandName,pageable);
-        return products.stream().map(this::mapToDto).toList();
-    }
+
+
 
     //  zliczanie
     public long countProductsByBrandName(String brandName) {
