@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -108,6 +108,36 @@ public class ProductDto {
 
     public void setSubCategoryName(String subCategoryName) {
         this.subCategoryName = subCategoryName;
+    }
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class ProductDto {
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
+    private Long productId;
+
+    private String name;
+    private String brandName;
+    private String descriptionPL;
+    private String descriptionENG;
+    private String categoryName;
+    private String subCategoryName;
+    private String pdfUrl;
+    private List<String> images;
+    private String coverImageUrl;
+
+    public void setImages(List<String> images) {
+        this.images = images;
+        if (images != null && !images.isEmpty()) {
+            this.coverImageUrl = images.get(0);
+        }
     }
 }
 
