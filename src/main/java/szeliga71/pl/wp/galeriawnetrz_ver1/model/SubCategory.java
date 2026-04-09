@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.model;
 
 import jakarta.persistence.*;
 
@@ -16,7 +16,7 @@ public class SubCategory {
     @Column(unique = true)
     private String slugSubCategoryName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -60,6 +60,39 @@ public class SubCategory {
         this.category = category;
     }
 
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "sub_categories")
+public class SubCategory {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Zmienione ze subCategoryId dla spójności
+
+    @Column(unique = true, nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
+    @Column(unique = true, nullable = false)
+    private String slug;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 }
 
 

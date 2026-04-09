@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
 public class BrandCreateDto {
     private String brandName;
@@ -57,5 +57,20 @@ public class BrandCreateDto {
     public void setSlugName(String slugName) {
         this.slugName = slugName;
     }
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
+
+import lombok.Data;
+
+
+// BrandCreateDto.java - do odbierania danych (Request)
+@Data
+public class BrandCreateDto {
+    private String brandName;
+    private String brandImageUrl;
+    private String brandDescriptionPL; // Tutaj przychodzi zwykły String
+    private String brandDescriptionENG;
+    private String brandUrl;
+    private String slugName;
 }
 

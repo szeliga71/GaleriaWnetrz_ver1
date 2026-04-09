@@ -1,5 +1,6 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,20 +13,19 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/query")
+@RequiredArgsConstructor // Automatyczny konstruktor dla queryService
 public class QueryController {
 
     private final QueryService queryService;
 
-    public QueryController(QueryService queryService) {
-        this.queryService = queryService;
-    }
-
     @GetMapping("/{query}")
     public ResponseEntity<QueryResultsDto> query(@PathVariable String query) {
-        if (query.length() < 3) {
+        // Logika walidacji długości zapytania
+        if (query == null || query.trim().length() < 3) {
+            // Zwracamy pusty DTO zamiast błędu, aby frontend mógł to łatwo obsłużyć
             return ResponseEntity.ok(new QueryResultsDto(List.of(), List.of(), List.of(), List.of()));
-            //return ResponseEntity.badRequest().build();
         }
+
         return ResponseEntity.ok(queryService.search(query));
     }
 }

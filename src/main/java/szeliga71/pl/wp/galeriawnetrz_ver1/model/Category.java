@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -16,13 +16,13 @@ public class Category {
 
     @Column(unique = true)
     private String categoryName;
-    //@Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String categoryImageUrl;
 
     @Column(unique = true)
     private String slugCategoryName;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<SubCategory> subCategories = new ArrayList<>();
 
@@ -65,5 +65,38 @@ public class Category {
     public void setSubCategories(List<SubCategory> subCategories) {
         this.subCategories = subCategories;
     }
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "categories")
+public class Category {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // zredukowane z categoryId
+
+    @Column(unique = true, nullable = false)
+    private String name; // zredukowane z categoryName
+
+    @Column(columnDefinition = "TEXT")
+    private String categoryImageUrl; // zredukowane z categoryImageUrl
+
+    @Column(unique = true, nullable = false)
+    private String slug; // zredukowane z slugCategoryName
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<SubCategory> subCategories = new ArrayList<>();
 }
 

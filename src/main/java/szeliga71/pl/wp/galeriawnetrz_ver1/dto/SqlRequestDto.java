@@ -1,13 +1,8 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
+import lombok.*;
+
+@Data
 public class SqlRequestDto {
     private String query;
-
-    public String getQuery() {
-        return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
-    }
 }

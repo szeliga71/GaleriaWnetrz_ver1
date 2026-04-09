@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.service;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -174,5 +174,174 @@ public class BrandService {
         return brandsRepo.findBySlugNameIgnoreCase(slugBrandName)
                 .map(this::mapToDto);
 
+    }
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandCreateDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.BrandDto;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brand;
+import szeliga71.pl.wp.galeriawnetrz_ver1.repository.BrandRepo;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+@RequiredArgsConstructor // Automatyczne wstrzykiwanie przez konstruktor (Lombok)
+public class BrandService {
+
+    private final BrandRepo brandRepo;
+
+    public Optional<BrandDto> getBrandById(Long id) {
+        return brandRepo.findById(id)
+                .map(this::mapToDto);
+    }
+
+    public List<BrandDto> getAllBrands() {
+        return brandRepo.findAll()
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteBrand(Long id) {
+        if (brandRepo.existsById(id)) {
+            brandRepo.deleteById(id);
+        }
+    }
+
+    @Transactional
+    public void deleteBrandByName(String name) {
+        Brand existing = brandRepo.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+        brandRepo.delete(existing);
+    }
+
+    public void deleteAllAndReset() {
+        brandRepo.truncateBrands();
+    }
+
+    @Transactional
+    public Optional<BrandDto> getBrandByName(String name) {
+        return brandRepo.findByNameIgnoreCase(name)
+                .map(this::mapToDto);
+    }
+
+    @Transactional
+    public BrandDto createBrandFromDto(BrandCreateDto dto) {
+        Brand brand = new Brand();
+        brand.setName(dto.getBrandName());
+        brand.setImageUrl(dto.getBrandImageUrl());
+        brand.setUrl(dto.getBrandUrl());
+        brand.setDescriptionPL(dto.getBrandDescriptionPL());
+        brand.setDescriptionENG(dto.getBrandDescriptionENG());
+        brand.setSlug(dto.getSlugName() != null ? dto.getSlugName() : generateSlug(dto.getBrandName()));
+
+        Brand saved = brandRepo.save(brand);
+        return mapToDto(saved);
+    }
+
+    @Transactional
+    public BrandDto updateBrand(Long id, BrandCreateDto dto) {
+        Brand existing = brandRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+
+        updateBrandFields(existing, dto);
+
+        Brand saved = brandRepo.save(existing);
+        return mapToDto(saved);
+    }
+
+    @Transactional
+    public BrandDto updateBrandByName(String name, BrandCreateDto dto) {
+        Brand existing = brandRepo.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new RuntimeException("Brand not found"));
+
+        updateBrandFields(existing, dto);
+
+        Brand saved = brandRepo.save(existing);
+        return mapToDto(saved);
+    }
+
+    @Transactional
+    public Optional<BrandDto> patchBrand(Long id, BrandCreateDto updates) {
+        return brandRepo.findById(id).map(existing -> {
+            applyPatch(existing, updates);
+            Brand saved = brandRepo.save(existing);
+            return mapToDto(saved);
+        });
+    }
+
+    @Transactional
+    public Optional<BrandDto> patchBrandByName(String name, BrandCreateDto updates) {
+        return brandRepo.findByNameIgnoreCase(name).map(existing -> {
+            applyPatch(existing, updates);
+            Brand saved = brandRepo.save(existing);
+            return mapToDto(saved);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<BrandDto> getBrandBySlugName(String slug) {
+        return brandRepo.findBySlugIgnoreCase(slug)
+                .map(this::mapToDto);
+    }
+
+    // --- Metody pomocnicze (Helper Methods) ---
+
+    private void updateBrandFields(Brand brand, BrandCreateDto dto) {
+        brand.setName(dto.getBrandName());
+        brand.setUrl(dto.getBrandUrl());
+        brand.setImageUrl(dto.getBrandImageUrl());
+        brand.setDescriptionPL(dto.getBrandDescriptionPL());
+        brand.setDescriptionENG(dto.getBrandDescriptionENG());
+        brand.setSlug(dto.getSlugName() != null ? dto.getSlugName() : generateSlug(dto.getBrandName()));
+    }
+
+    private void applyPatch(Brand brand, BrandCreateDto updates) {
+        if (updates.getBrandName() != null) {
+            brand.setName(updates.getBrandName());
+            brand.setSlug(generateSlug(updates.getBrandName()));
+        }
+        if (updates.getBrandUrl() != null) brand.setUrl(updates.getBrandUrl());
+        if (updates.getBrandImageUrl() != null) brand.setImageUrl(updates.getBrandImageUrl());
+        if (updates.getBrandDescriptionPL() != null) brand.setDescriptionPL(updates.getBrandDescriptionPL());
+        if (updates.getBrandDescriptionENG() != null) brand.setDescriptionENG(updates.getBrandDescriptionENG());
+        if (updates.getSlugName() != null) brand.setSlug(updates.getSlugName());
+    }
+
+    private BrandDto mapToDto(Brand brand) {
+        BrandDto dto = new BrandDto();
+        dto.setBrandId(brand.getId());
+        dto.setBrandName(brand.getName());
+        dto.setBrandImageUrl(brand.getImageUrl());
+        dto.setBrandUrl(brand.getUrl());
+        dto.setSlugName(brand.getSlug());
+        dto.setBrandDescriptionPL(splitText(brand.getDescriptionPL(), 100));
+        dto.setBrandDescriptionENG(splitText(brand.getDescriptionENG(), 100));
+        return dto;
+    }
+
+    private List<String> splitText(String text, int size) {
+        if (text == null) return null;
+        List<String> parts = new ArrayList<>();
+        for (int i = 0; i < text.length(); i += size) {
+            parts.add(text.substring(i, Math.min(text.length(), i + size)));
+        }
+        return parts;
+    }
+
+    private String generateSlug(String name) {
+        if (name == null) return null;
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("^-|-$", "");
     }
 }

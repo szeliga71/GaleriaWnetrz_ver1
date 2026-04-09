@@ -1,144 +1,91 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.service;
 
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CategoryDto;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.repository.CategoryRepo;
 
 import java.util.List;
 import java.util.Optional;
-
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class CategoryService {
 
-    @Autowired
-   CategoryRepo categoryRepo;
+    private final CategoryRepo categoryRepo;
 
+    // --- NOWE METODY DLA KONTROLERA ---
 
-    public Optional<Category> getCategoryByName(String categoryName){
-        return categoryRepo.findByCategoryNameIgnoreCase(categoryName);
+    @Transactional(readOnly = true)
+    public Optional<CategoryDto> getCategoryById(Long id) {
+        return categoryRepo.findById(id)
+                .map(this::mapToDto);
     }
 
-
-    public Category getCategoryById(Long id) {
-        return categoryRepo.findById(id).orElse(null);
+    @Transactional(readOnly = true)
+    public Optional<CategoryDto> getCategoryByName(String name) {
+        // Ta metoda wymaga istnienia findByNameIgnoreCase w CategoryRepo
+        return categoryRepo.findByNameIgnoreCase(name)
+                .map(this::mapToDto);
     }
+
+    // --- ISTNIEJĄCE METODY ---
 
     public CategoryDto saveCategory(CategoryDto dto) {
         Category category = new Category();
-        category.setCategoryName(dto.getCategoryName());
+        category.setName(dto.getName());
         category.setCategoryImageUrl(dto.getCategoryImageUrl());
-        category.setSlugCategoryName(generateSlug(dto.getCategoryName()));
-
-        Category saved = categoryRepo.save(category);
-        return mapToDto(saved);
+        category.setSlug(generateSlug(dto.getName()));
+        return mapToDto(categoryRepo.save(category));
     }
 
-    @Transactional
     public CategoryDto updateCategory(Long id, CategoryDto dto) {
-        Category category = getCategoryById(id);
-        category.setCategoryName(dto.getCategoryName());
-        category.setCategoryImageUrl(dto.getCategoryImageUrl());
-        category.setSlugCategoryName(generateSlug(dto.getCategoryName()));
+        Category category = categoryRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
 
-        Category saved = categoryRepo.save(category);
-        return mapToDto(saved);
+        category.setName(dto.getName());
+        category.setCategoryImageUrl(dto.getCategoryImageUrl());
+        category.setSlug(generateSlug(dto.getName()));
+
+        return mapToDto(categoryRepo.save(category));
     }
 
     public void deleteCategory(Long id) {
+        if (!categoryRepo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found");
+        }
         categoryRepo.deleteById(id);
     }
 
-    public void deleteAllAndReset() {
-        categoryRepo.truncateCategories();
+    @Transactional(readOnly = true)
+    public List<CategoryDto> getAllCategories() {
+        return categoryRepo.findAll().stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
     }
 
-    public CategoryDto mapToDto(Category category) {
+    // --- POMOCNICZE ---
+
+    private CategoryDto mapToDto(Category category) {
+        if (category == null) return null;
         CategoryDto dto = new CategoryDto();
-        dto.setCategoryId(category.getCategoryId());
-        dto.setCategoryName(category.getCategoryName());
+        dto.setId(category.getId());
+        dto.setName(category.getName());
         dto.setCategoryImageUrl(category.getCategoryImageUrl());
-        dto.setSlugCategoryName(category.getSlugCategoryName());
-
-        if (category.getSubCategories() != null && !category.getSubCategories().isEmpty()) {
-            dto.setSubCategories(
-                    category.getSubCategories().stream()
-                            .map(sc -> {
-                                SubCategoryDto scDto = new SubCategoryDto();
-                                scDto.setSubCategoryId(sc.getSubCategoryId());
-                                scDto.setSubCategoryName(sc.getSubCategoryName());
-                                scDto.setSubCategoryImageUrl(sc.getSubCategoryImageUrl());
-                                scDto.setSlugSubCategoryName(sc.getSlugSubCategoryName());
-                                scDto.setCategoryId(sc.getCategory().getCategoryId()); // tylko ID
-                                return scDto;
-                            })
-                            .toList()
-            );
-        }
-
+        dto.setSlug(category.getSlug());
         return dto;
     }
 
     private String generateSlug(String name) {
-        if (name == null) return null;
+        if (name == null) return "";
         return name.toLowerCase()
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("^-|-$", "");
     }
-
-    @Transactional
-    public Optional<CategoryDto> patchCategory(Long id, CategoryDto updates) {
-        return categoryRepo.findById(id).map(existing -> {
-            if (updates.getCategoryName() != null) existing.setCategoryName(updates.getCategoryName());
-            if (updates.getCategoryImageUrl() != null) existing.setCategoryImageUrl(updates.getCategoryImageUrl());
-            if(updates.getSlugCategoryName() !=null) existing.setSlugCategoryName(updates.getSlugCategoryName());
-            Category saved = categoryRepo.save(existing);
-            return mapToDto(saved);
-        });
-    }
-
-    @Transactional
-    public CategoryDto updateCategoryByName(String categoryName, CategoryDto dto) {
-        Category existing = categoryRepo.findByCategoryNameIgnoreCase(categoryName)
-                .orElse(null);
-
-        if(dto.getCategoryName() !=null ) if (existing != null) {
-            existing.setCategoryName(dto.getCategoryName());
-        }
-        if(dto.getCategoryImageUrl()!=null) if (existing != null) {
-            existing.setCategoryImageUrl(dto.getCategoryImageUrl());
-        }
-        if (existing != null) {
-            existing.setSlugCategoryName(dto.getSlugCategoryName());
-        }
-        Category saved = null;
-        if (existing != null) {
-            saved = categoryRepo.save(existing);
-        }
-        return mapToDto(saved);
-    }
-    @Transactional
-    public Optional<CategoryDto> patchCategoryByName(String categoryName, CategoryDto updates) {
-        return categoryRepo.findByCategoryNameIgnoreCase(categoryName).map(existing -> {
-            if (updates.getCategoryName() != null) existing.setCategoryName(updates.getCategoryName());
-            if (updates.getCategoryImageUrl() != null) existing.setCategoryImageUrl(updates.getCategoryImageUrl());
-            if(updates.getSlugCategoryName() !=null) existing.setSlugCategoryName(updates.getSlugCategoryName());
-            Category saved = categoryRepo.save(existing);
-            return mapToDto(saved);
-        });
-
-    }
-
-@Transactional
-    public void deleteCategoryByCategoryName(String categoryName) {
-        Category existing = categoryRepo.findByCategoryNameIgnoreCase(categoryName)
-                .orElse(null);
-    if (existing != null) {
-        categoryRepo.delete(existing);
-    }
-}
 }

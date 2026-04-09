@@ -106,7 +106,14 @@ public class SecurityConfig {
 
                         // 🔐 ROLE
                         .requestMatchers("/api/admin/super/**").hasRole("SUPERADMIN")
-                        .requestMatchers("/api/admin/**").hasAnyRole("SUPERADMIN", "ADMIN")
+
+                        //ULATWIENIA DEV DO testowania !!!!!!!!!
+
+                        //.requestMatchers("/api/admin/**").hasAnyRole("SUPERADMIN", "ADMIN")
+                        .requestMatchers("/api/admin/import/**").permitAll()
+
+
+
 
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
 

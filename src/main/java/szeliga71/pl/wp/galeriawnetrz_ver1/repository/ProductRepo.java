@@ -46,7 +46,7 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
     Optional<Product> findByNameIgnoreCase(String name);
 
 }*/
-package szeliga71.pl.wp.galeriawnetrz_ver1.repository;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,6 +78,41 @@ public interface ProductRepo extends JpaRepository<Product, Long> {
     long countBySubCategory_SubCategoryNameIgnoreCase(String name);
     long countByCategory_CategoryNameIgnoreCase(String name);
     long countByBrand_BrandNameIgnoreCase(String name);
+
+    @Modifying
+    @Transactional
+    @Query(value = "TRUNCATE TABLE products RESTART IDENTITY CASCADE", nativeQuery = true)
+    void truncateProducts();
+}*/
+package szeliga71.pl.wp.galeriawnetrz_ver1.repository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Product;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ProductRepo extends JpaRepository<Product, Long> {
+
+    List<Product> findByNameIgnoreCaseContaining(String query);
+    Optional<Product> findByNameIgnoreCase(String name);
+
+    Page<Product> findByCategory_NameIgnoreCase(String categoryName, Pageable pageable);
+
+    List<Product> findBySubCategory_NameIgnoreCase(String subCategoryName);
+
+    Page<Product> findByBrand_NameIgnoreCase(String brandName, Pageable pageable);
+
+    long countBySubCategory_NameIgnoreCase(String name);
+    long countByCategory_NameIgnoreCase(String name);
+    long countByBrand_NameIgnoreCase(String name);
 
     @Modifying
     @Transactional

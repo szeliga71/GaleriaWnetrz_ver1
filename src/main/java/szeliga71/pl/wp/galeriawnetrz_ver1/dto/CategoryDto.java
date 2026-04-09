@@ -1,58 +1,17 @@
 package szeliga71.pl.wp.galeriawnetrz_ver1.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class CategoryDto {
-
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long categoryId;
-    private String categoryName;
+    private Long id; // Zmienione z categoryId na id dla spójności
+    private String name; // Zmienione z categoryName na name
     private String categoryImageUrl;
-    private String slugCategoryName;
+    private String slug; // Zmienione ze slugCategoryName na slug
     private List<SubCategoryDto> subCategories;
-
-
-    public Long getCategoryId() {
-        return categoryId;
-    }
-
-    public void setCategoryId(Long categoryId) {
-        this.categoryId = categoryId;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
-
-    public String getCategoryImageUrl() {
-        return categoryImageUrl;
-    }
-
-    public void setCategoryImageUrl(String categoryImageUrl) {
-        this.categoryImageUrl = categoryImageUrl;
-    }
-
-    public String getSlugCategoryName() {
-        return slugCategoryName;
-    }
-
-    public void setSlugCategoryName(String slugCategoryName) {
-        this.slugCategoryName = slugCategoryName;
-    }
-
-    public List<SubCategoryDto> getSubCategories() {
-        return subCategories;
-    }
-
-    public void setSubCategories(List<SubCategoryDto> subCategories) {
-        this.subCategories = subCategories;
-    }
 }

@@ -5,25 +5,24 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brands;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CategoryRepo extends JpaRepository<Category, Long> {
+public interface BrandsRepo extends JpaRepository<Brands, Long> {
 
-    boolean existsBySlugCategoryName(String slugCategoryName);
+    Optional<Brands> findByBrandNameIgnoreCase(String brandName);
 
-    Optional<Category> findByCategoryNameIgnoreCase(String categoryName);
+    Optional<Brands> findBySlugNameIgnoreCase(String slugBrandName);
 
-    List<Category> findByCategoryNameIgnoreCaseContaining(String query);
+    List<Brands> findByBrandNameIgnoreCaseContaining(String query);
 
     @Modifying
     @Transactional
-    @Query(value = "TRUNCATE TABLE categories RESTART IDENTITY CASCADE", nativeQuery = true)
-    void truncateCategories();
+    @Query(value = "TRUNCATE TABLE brands RESTART IDENTITY CASCADE", nativeQuery = true)
+    void truncateBrands();
 }*/
 package szeliga71.pl.wp.galeriawnetrz_ver1.repository;
 
@@ -32,22 +31,22 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
+import szeliga71.pl.wp.galeriawnetrz_ver1.model.Brand;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CategoryRepo extends JpaRepository<Category, Long> {
+public interface BrandRepo extends JpaRepository<Brand, Long> {
 
-    boolean existsBySlug(String slug);
+    Optional<Brand> findByNameIgnoreCase(String name);
 
-    Optional<Category> findByNameIgnoreCase(String name);
+    Optional<Brand> findBySlugIgnoreCase(String slug);
 
-    List<Category> findByNameIgnoreCaseContaining(String query);
+    List<Brand> findByNameIgnoreCaseContaining(String query);
 
     @Modifying
     @Transactional
-    @Query(value = "TRUNCATE TABLE categories RESTART IDENTITY CASCADE", nativeQuery = true)
-    void truncateCategories();
+    @Query(value = "TRUNCATE TABLE brands RESTART IDENTITY CASCADE", nativeQuery = true)
+    void truncateBrands();
 }

@@ -4,31 +4,30 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
-import szeliga71.pl.wp.galeriawnetrz_ver1.dto.CreateSubCategoryDto;
-import szeliga71.pl.wp.galeriawnetrz_ver1.model.Category;
 import szeliga71.pl.wp.galeriawnetrz_ver1.model.SubCategory;
 
 import java.util.List;
 import java.util.Optional;
 
-
 public interface SubCategoryRepo extends JpaRepository<SubCategory, Long> {
 
-    List<SubCategory> findBySubCategoryNameIgnoreCaseContaining(String query);
 
-    List<SubCategory> findByCategory_CategoryId(Long categoryId);
+    List<SubCategory> findByNameIgnoreCaseContaining(String query);
 
-    boolean existsBySlugSubCategoryName(String slugSubCategoryName);
 
-    Optional<SubCategory> findBySubCategoryNameIgnoreCase(String subCategoryName);
+    List<SubCategory> findByCategory_Id(Long categoryId);
+
+
+    List<SubCategory> findByCategory_Name(String categoryName);
+
+
+    boolean existsBySlug(String slug);
+
+
+    Optional<SubCategory> findByNameIgnoreCase(String name);
 
     @Modifying
     @Transactional
     @Query(value = "TRUNCATE TABLE sub_categories RESTART IDENTITY CASCADE", nativeQuery = true)
     void truncateSubCategory();
-
-    List<SubCategory> findByCategory_CategoryName(String categoryName);
-
 }
-
-

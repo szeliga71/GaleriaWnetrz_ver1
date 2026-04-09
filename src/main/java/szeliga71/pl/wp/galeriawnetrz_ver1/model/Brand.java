@@ -1,4 +1,4 @@
-package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+/*package szeliga71.pl.wp.galeriawnetrz_ver1.model;
 
 import jakarta.persistence.*;
 
@@ -10,7 +10,7 @@ public class Brands {
     private Long brandId;
     @Column(unique = true)
     private String brandName;
-    //@Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String brandImageUrl;
     @Column(columnDefinition = "TEXT")
     private String brandDescriptionPL;
@@ -18,7 +18,7 @@ public class Brands {
     private String brandDescriptionENG;
     @Column(columnDefinition = "TEXT")
     private String brandUrl;
-    //@Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String slugName;
 
     public Long getBrandId() {
@@ -76,4 +76,38 @@ public class Brands {
     public void setSlugName(String slugName) {
         this.slugName = slugName;
     }
+}*/package szeliga71.pl.wp.galeriawnetrz_ver1.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "brands")
+public class Brand {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String descriptionPL;
+
+    @Column(columnDefinition = "TEXT")
+    private String descriptionENG;
+
+    @Column(columnDefinition = "TEXT")
+    private String url;
+
+    @Column(unique = true, nullable = false)
+    private String slug;
 }
